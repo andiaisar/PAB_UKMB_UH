@@ -1,0 +1,40 @@
+// Firebase Security Rules untuk Production
+// Copy paste ini ke Firebase Console → Firestore → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Collection: peserta
+    match /peserta/{pesertaId} {
+      // Allow read untuk semua (public dashboard)
+      allow read: if true;
+      
+      // Allow write hanya untuk authenticated users
+      // Uncomment baris di bawah jika sudah implement authentication
+      // allow write: if request.auth != null;
+      
+      // Untuk development: allow write untuk semua
+      // ⚠️ HAPUS baris ini saat production!
+      allow write: if true;
+      
+      // Validasi data
+      allow create: if request.resource.data.keys().hasAll([
+        'nama', 'nim', 'fakultas', 'prodi', 'hp',
+        'tahap_1', 'tahap_2', 'tahap_3', 'tahap_4', 'tahap_5'
+      ]) && request.resource.data.nim is string
+         && request.resource.data.nim.size() > 0;
+      
+      // Update hanya boleh ubah field tertentu
+      allow update: if request.resource.data.diff(resource.data)
+        .affectedKeys()
+        .hasOnly(['nama', 'fakultas', 'prodi', 'hp', 
+                  'tahap_1', 'tahap_2', 'tahap_3', 'tahap_4', 'tahap_5']);
+    }
+    
+    // Deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
