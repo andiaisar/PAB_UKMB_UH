@@ -22,7 +22,7 @@ function App() {
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Academic Year</div>
-              <div className="text-lg font-semibold text-gray-800">2025/2026</div>
+              <div className="text-lg font-semibold text-gray-800">2026</div>
             </div>
           </div>
         </div>
@@ -75,7 +75,7 @@ function App() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-sm text-gray-600">
-              © 2025 PAB UKM Dashboard - Universitas Hasanuddin
+              © 2026 PAB UKM Dashboard - Universitas Hasanuddin
             </div>
             <div className="flex items-center gap-4 mt-4 md:mt-0">
               <div className="flex items-center gap-2 text-sm text-gray-600">

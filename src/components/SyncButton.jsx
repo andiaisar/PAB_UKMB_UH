@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
+import Papa from 'papaparse';
 
 const SyncButton = () => {
   const [loading, setLoading] = useState(false);
@@ -11,72 +12,99 @@ const SyncButton = () => {
     setMessage('');
 
     try {
-      // URL Google Sheet yang sudah dipublish sebagai CSV atau JSON
-      // Ganti dengan URL Google Sheet Anda
-      // Format: https://docs.google.com/spreadsheets/d/SHEET_ID/gviz/tq?tqx=out:json
-      // atau export sebagai CSV: https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv
+      // URL Google Sheet yang sudah di-publish ke web
+      // Published URL (HTML): https://docs.google.com/spreadsheets/d/e/2PACX-1vRa643VjZQBJcqFd--Jr2ihV5U0rp34fEsxlE-3E6g-HRWYf9UGzEaNEsCH-kopqYZjsp8ZwL52LyoQ/pubhtml?gid=1921756972&single=true
+      // CSV URL: Ganti 'pubhtml' jadi 'pub' dan tambahkan '&output=csv'
+      const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRa643VjZQBJcqFd--Jr2ihV5U0rp34fEsxlE-3E6g-HRWYf9UGzEaNEsCH-kopqYZjsp8ZwL52LyoQ/pub?gid=1921756972&single=true&output=csv';
       
-      const sheetUrl = 'YOUR_GOOGLE_SHEET_URL_HERE';
+      // Fetch data dari Google Sheet (format CSV)
+      const response = await fetch(sheetUrl, {
+        method: 'GET',
+        cache: 'no-cache'
+      });
       
-      // Contoh fetch data dari Google Sheet (format CSV)
-      const response = await fetch(sheetUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+      }
+      
       const csvData = await response.text();
       
-      // Parse CSV ke array of objects
-      const rows = csvData.split('\n');
-      const headers = rows[0].split(',').map(h => h.trim());
+      // Parse CSV menggunakan PapaParse
+      const parseResult = Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header) => header.trim()
+      });
       
-      const pesertaData = [];
-      for (let i = 1; i < rows.length; i++) {
-        if (rows[i].trim() === '') continue;
-        
-        const values = rows[i].split(',').map(v => v.trim());
-        const peserta = {};
-        
-        headers.forEach((header, index) => {
-          peserta[header] = values[index] || '';
-        });
-        
-        pesertaData.push(peserta);
+      if (parseResult.errors.length > 0) {
+        console.warn('Parse warnings:', parseResult.errors);
+      }
+      
+      const pesertaData = parseResult.data;
+      
+      console.log('📊 Jumlah data:', pesertaData.length);
+      
+      if (pesertaData.length === 0) {
+        setMessage('⚠️ Tidak ada data di spreadsheet!');
+        return;
       }
 
-      // Simpan ke Firestore dengan merge: true
+      // Simpan ke Firestore dengan batch (lebih cepat)
       const pesertaRef = collection(db, 'peserta');
       let successCount = 0;
-
-      for (const peserta of pesertaData) {
-        if (!peserta.nim || peserta.nim === '') continue;
-
-        // Gunakan NIM sebagai document ID
-        const docRef = doc(pesertaRef, peserta.nim);
+      let skippedCount = 0;
+      
+      // Gunakan Promise.all untuk parallel processing (lebih cepat)
+      const savePromises = pesertaData.map(async (peserta) => {
+        // Mapping sesuai nama kolom di spreadsheet
+        const actualNama = peserta.NAMA?.trim(); 
+        const actualNim = peserta.NIM?.trim();
+        const fakultas = peserta.FAKULTAS?.trim();
+        const prodi = peserta.PRODI?.trim();
+        const nomoHp = peserta['NOMO HP']?.trim();
         
-        // Data yang akan disimpan (hanya data dari sheet, tidak termasuk status tahap)
-        // Status tahap akan dipertahankan jika sudah ada (merge: true)
+        // Skip jika tidak ada NIM yang valid
+        if (!actualNim || actualNim === '') {
+          skippedCount++;
+          return null;
+        }
+
+        // Data yang akan disimpan
         const dataToSave = {
-          nama: peserta.nama || '',
-          nim: peserta.nim || '',
-          fakultas: peserta.fakultas || '',
-          prodi: peserta.prodi || '',
-          hp: peserta.hp || '',
-          // Inisialisasi status tahap hanya untuk peserta BARU
-          // Jika peserta sudah ada, merge: true akan mempertahankan nilai lama
-          tahap_1: peserta.tahap_1 === 'true' || false,
-          tahap_2: peserta.tahap_2 === 'true' || false,
-          tahap_3: peserta.tahap_3 === 'true' || false,
-          tahap_4: peserta.tahap_4 === 'true' || false,
-          tahap_5: peserta.tahap_5 === 'true' || false,
+          nama: actualNama || '',
+          nim: actualNim || '',
+          fakultas: fakultas || '',
+          prodi: prodi || '',
+          hp: nomoHp || '',
+          tahap_1: false,
+          tahap_2: false,
+          tahap_3: false,
+          tahap_4: false,
+          tahap_5: false,
         };
 
-        // PENTING: merge: true memastikan data lama tidak tertimpa
+        // Simpan dengan merge: true (parallel)
+        const docRef = doc(pesertaRef, actualNim);
         await setDoc(docRef, dataToSave, { merge: true });
-        successCount++;
-      }
+        return actualNim;
+      });
 
-      setMessage(`✅ Berhasil sync ${successCount} peserta!`);
+      // Tunggu semua proses selesai (parallel processing)
+      const results = await Promise.all(savePromises);
+      successCount = results.filter(r => r !== null).length;
+
+      setMessage(`✅ Berhasil sync ${successCount} peserta!${skippedCount > 0 ? ` (${skippedCount} dilewati)` : ''}`);
       
     } catch (error) {
-      console.error('Error saat sync:', error);
-      setMessage(`❌ Error: ${error.message}`);
+      console.error('❌ Error saat sync:', error);
+      
+      let errorMsg = error.message;
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        errorMsg = 'Tidak dapat mengakses Google Sheets. Pastikan sudah di-share dengan "Anyone with the link"!';
+      }
+      
+      setMessage(`❌ Error: ${errorMsg}`);
     } finally {
       setLoading(false);
     }

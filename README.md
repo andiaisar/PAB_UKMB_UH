@@ -29,12 +29,15 @@ Dashboard real-time untuk tracking progress peserta dengan sinkronisasi data dar
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Setup Firebase
+
 Edit `src/firebase.js` dan masukkan Firebase config Anda:
+
 ```javascript
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -45,14 +48,17 @@ const firebaseConfig = {
 ```
 
 ### 3. Setup Google Sheet
+
 1. Buat Google Sheet dengan header: `nama`, `nim`, `fakultas`, `prodi`, `hp`
 2. Publish sebagai CSV (File → Share → Publish to web → CSV)
 3. Copy URL ke `src/components/SyncButton.jsx` (baris 14)
 
 ### 4. Setup Firestore Rules
+
 Copy rules dari `firestore.rules` ke Firebase Console → Firestore → Rules
 
 ### 5. Run Development Server
+
 ```bash
 npm run dev
 ```
@@ -60,6 +66,7 @@ npm run dev
 Buka browser: `http://localhost:5173`
 
 ### 6. First Sync
+
 Klik tombol **"Sync dari Google Sheet"** untuk import data pertama kali
 
 ---
@@ -101,17 +108,20 @@ PAB_UKMB_UH/
 ## 🎯 Cara Pakai
 
 ### Import Data Peserta
+
 1. Buka dashboard
 2. Klik "Sync dari Google Sheet"
 3. Data peserta akan muncul di tabel
 
 ### Update Status Tahap
+
 1. Buka tab "Data Peserta"
 2. Cari peserta yang ingin diupdate
 3. Klik checkbox tahap yang sudah selesai
 4. Data otomatis tersimpan ke Firestore
 
 ### Monitoring Progress
+
 1. Buka tab "Dashboard & Statistik"
 2. Lihat total peserta dan persentase lulus
 3. Cek grafik distribusi per fakultas
@@ -121,11 +131,13 @@ PAB_UKMB_UH/
 ## 🔥 Fitur Kunci: Merge True
 
 Saat sync dari Google Sheet, sistem menggunakan:
+
 ```javascript
-setDoc(docRef, data, { merge: true })
+setDoc(docRef, data, { merge: true });
 ```
 
 **Keuntungan:**
+
 - ✅ Peserta baru akan ditambahkan
 - ✅ Data profil peserta lama diupdate (nama, fakultas, dll)
 - ✅ **Status checkbox (tahap_1 - tahap_5) TIDAK akan direset**
@@ -157,12 +169,12 @@ setDoc(docRef, data, { merge: true })
 
 ## 🐛 Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| Firebase not defined | Isi config di `src/firebase.js` |
-| Sync gagal | Pastikan Google Sheet sudah dipublish sebagai CSV |
-| Checkbox tidak update | Cek Firestore rules: allow write: true |
-| Data tidak muncul | Klik "Sync dari Google Sheet" terlebih dahulu |
+| Problem               | Solution                                          |
+| --------------------- | ------------------------------------------------- |
+| Firebase not defined  | Isi config di `src/firebase.js`                   |
+| Sync gagal            | Pastikan Google Sheet sudah dipublish sebagai CSV |
+| Checkbox tidak update | Cek Firestore rules: allow write: true            |
+| Data tidak muncul     | Klik "Sync dari Google Sheet" terlebih dahulu     |
 
 Lihat [README_PANDUAN.md](README_PANDUAN.md#troubleshooting) untuk troubleshooting lengkap.
 
@@ -171,11 +183,13 @@ Lihat [README_PANDUAN.md](README_PANDUAN.md#troubleshooting) untuk troubleshooti
 ## 📸 Screenshots
 
 ### Dashboard
+
 - Statistik: Total Peserta, Total Lulus, Persentase
 - Bar Chart: Distribusi peserta per fakultas
 - Real-time updates
 
 ### Tabel Peserta
+
 - Filter berdasarkan nama/NIM/fakultas
 - Checkbox untuk setiap tahap (1-5)
 - Auto-save ke Firestore
@@ -186,12 +200,14 @@ Lihat [README_PANDUAN.md](README_PANDUAN.md#troubleshooting) untuk troubleshooti
 ## 🔐 Security
 
 **Development Mode:**
+
 ```javascript
 allow read, write: if true;  // ⚠️ Development only!
 ```
 
 **Production Mode:**
 Implementasi Firebase Authentication dan update rules:
+
 ```javascript
 allow read: if true;
 allow write: if request.auth != null;
@@ -222,6 +238,7 @@ MIT License - Feel free to use for your UKM dashboard!
 Built with ❤️ for PAB UKM Universitas Hasanuddin
 
 **Tech Stack:**
+
 - React + Vite
 - Firebase Firestore
 - Tailwind CSS
@@ -232,6 +249,7 @@ Built with ❤️ for PAB UKM Universitas Hasanuddin
 ## 📞 Support
 
 Jika ada pertanyaan atau issue:
+
 1. Baca dokumentasi lengkap di `README_PANDUAN.md`
 2. Cek `QUICKSTART.md` untuk setup cepat
 3. Lihat `CHECKLIST.md` untuk checklist setup

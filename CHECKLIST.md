@@ -1,13 +1,15 @@
-# ✅ Setup Checklist - PAB UKM Dashboard
+ ✅ Setup Checklist - PAB UKM Dashboard
 
 ## 📦 Yang Telah Dibuat
 
 ### Komponen React (src/components/)
+
 - ✅ SyncButton.jsx - Sync dari Google Sheet dengan merge: true
 - ✅ Dashboard.jsx - Statistik + Bar Chart (Recharts)
 - ✅ PesertaTable.jsx - Tabel dengan checkbox real-time
 
 ### File Utama (src/)
+
 - ✅ App.jsx - Main app dengan tab navigation
 - ✅ main.jsx - Entry point
 - ✅ firebase.js - Config Firebase (perlu diisi)
@@ -16,6 +18,7 @@
 - ✅ utils/helpers.js - Utility functions
 
 ### Dokumentasi
+
 - ✅ README_PANDUAN.md - Panduan lengkap Bahasa Indonesia
 - ✅ QUICKSTART.md - Panduan cepat mulai
 - ✅ SUMMARY.md - Ringkasan semua fitur
@@ -23,6 +26,7 @@
 - ✅ sample-data.csv - Contoh data untuk testing
 
 ### Dependencies
+
 - ✅ recharts - Sudah terinstall
 
 ---
@@ -30,20 +34,22 @@
 ## 🔧 Yang Perlu Dilakukan
 
 ### [ ] 1. Setup Firebase Config
+
 File: `src/firebase.js`
 
 ```javascript
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",              // ← ISI INI
-  authDomain: "YOUR_AUTH_DOMAIN",      // ← ISI INI
-  projectId: "YOUR_PROJECT_ID",        // ← ISI INI
-  storageBucket: "YOUR_STORAGE_BUCKET",// ← ISI INI
+  apiKey: "YOUR_API_KEY", // ← ISI INI
+  authDomain: "YOUR_AUTH_DOMAIN", // ← ISI INI
+  projectId: "YOUR_PROJECT_ID", // ← ISI INI
+  storageBucket: "YOUR_STORAGE_BUCKET", // ← ISI INI
   messagingSenderId: "YOUR_SENDER_ID", // ← ISI INI
-  appId: "YOUR_APP_ID"                 // ← ISI INI
+  appId: "YOUR_APP_ID", // ← ISI INI
 };
 ```
 
 **Cara mendapatkan:**
+
 1. Buka https://console.firebase.google.com
 2. Pilih project Anda
 3. Settings ⚙️ → Project settings
@@ -53,18 +59,21 @@ const firebaseConfig = {
 ---
 
 ### [ ] 2. Setup Google Sheet URL
+
 File: `src/components/SyncButton.jsx` (baris 14)
 
 ```javascript
-const sheetUrl = 'YOUR_GOOGLE_SHEET_URL_HERE';  // ← GANTI INI
+const sheetUrl = "YOUR_GOOGLE_SHEET_URL_HERE"; // ← GANTI INI
 ```
 
 **Format URL yang benar:**
+
 ```
 https://docs.google.com/spreadsheets/d/[SHEET_ID]/export?format=csv
 ```
 
 **Cara publish Google Sheet:**
+
 1. Buka Google Sheet Anda
 2. File → Share → Publish to web
 3. Tab: Pilih sheet yang aktif
@@ -73,6 +82,7 @@ https://docs.google.com/spreadsheets/d/[SHEET_ID]/export?format=csv
 6. Copy URL → paste ke SyncButton.jsx
 
 **Format header Google Sheet:**
+
 ```
 nama | nim | fakultas | prodi | hp
 ```
@@ -80,6 +90,7 @@ nama | nim | fakultas | prodi | hp
 ---
 
 ### [ ] 3. Setup Firestore Rules
+
 Buka Firebase Console → Firestore → Rules
 
 Copy paste dari file `firestore.rules`:
@@ -113,10 +124,12 @@ Buka browser: http://localhost:5173
 ## 🎯 First Time Usage
 
 1. **Klik "Sync dari Google Sheet"**
+
    - Import data peserta pertama kali
    - Tunggu hingga muncul "✅ Berhasil sync X peserta!"
 
 2. **Buka Tab "Dashboard & Statistik"**
+
    - Lihat total peserta
    - Lihat grafik distribusi per fakultas
 
@@ -130,29 +143,31 @@ Buka browser: http://localhost:5173
 ## 🔍 Cara Test Koneksi Firebase (Opsional)
 
 Edit `src/main.jsx`:
+
 ```javascript
-import FirebaseTest from './FirebaseTest.jsx'  // Tambah
+import FirebaseTest from "./FirebaseTest.jsx"; // Tambah
 // import App from './App.jsx'  // Comment out
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <FirebaseTest />  {/* Ganti dengan FirebaseTest */}
-  </React.StrictMode>,
-)
+    <FirebaseTest /> {/* Ganti dengan FirebaseTest */}
+  </React.StrictMode>
+);
 ```
 
 Jalankan `npm run dev` untuk test koneksi.
 
 Jika berhasil, kembalikan ke `App`:
+
 ```javascript
-import App from './App.jsx'
+import App from "./App.jsx";
 // import FirebaseTest from './FirebaseTest.jsx'  // Comment out
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
 ```
 
 ---
@@ -182,15 +197,19 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 ## 🚨 Troubleshooting
 
 ### Error: "Firebase is not defined"
+
 ✅ **Solusi:** Isi config di `src/firebase.js`
 
 ### Sync gagal / CORS error
+
 ✅ **Solusi:** Pastikan Google Sheet sudah dipublish sebagai CSV
 
 ### Checkbox tidak bisa diklik
+
 ✅ **Solusi:** Cek Firestore rules sudah allow write
 
 ### Data tidak muncul
+
 ✅ **Solusi:** Klik "Sync dari Google Sheet" terlebih dahulu
 
 ---
@@ -206,24 +225,30 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 ## ✨ Fitur Utama
 
 ### 1. Sync dengan Merge: True
+
 ```javascript
-setDoc(docRef, data, { merge: true })
+setDoc(docRef, data, { merge: true });
 ```
+
 - ✅ Peserta baru ditambahkan
 - ✅ Data profil diupdate
 - ✅ Checkbox TIDAK direset
 
 ### 2. Real-time Updates
+
 ```javascript
-onSnapshot(collection, callback)
+onSnapshot(collection, callback);
 ```
+
 - ✅ Perubahan langsung terlihat
 - ✅ Tidak perlu refresh
 
 ### 3. Checkbox Auto-save
+
 ```javascript
-updateDoc(docRef, { tahap_1: true })
+updateDoc(docRef, { tahap_1: true });
 ```
+
 - ✅ Klik checkbox → langsung tersimpan
 - ✅ Loading indicator
 

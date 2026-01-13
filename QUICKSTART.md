@@ -3,12 +3,15 @@
 ## 🚀 Instalasi Cepat
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Setup Firebase
+
 Edit file `src/firebase.js` dan masukkan konfigurasi Firebase Anda:
+
 ```javascript
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -19,12 +22,16 @@ const firebaseConfig = {
 ```
 
 ### 3. Setup Google Sheet URL
+
 Edit file `src/components/SyncButton.jsx` baris 14:
+
 ```javascript
-const sheetUrl = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv';
+const sheetUrl =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa643VjZQBJcqFd--Jr2ihV5U0rp34fEsxlE-3E6g-HRWYf9UGzEaNEsCH-kopqYZjsp8ZwL52LyoQ/pubhtml";
 ```
 
 ### 4. Jalankan
+
 ```bash
 npm run dev
 ```
@@ -32,11 +39,13 @@ npm run dev
 ## 📊 Format Google Sheet
 
 Buat Google Sheet dengan header:
+
 ```
 nama | nim | fakultas | prodi | hp
 ```
 
 Publish sebagai CSV:
+
 1. File → Share → Publish to web
 2. Format: CSV
 3. Copy URL
@@ -83,16 +92,19 @@ service cloud.firestore {
 ## 🐛 Troubleshooting Cepat
 
 **Data tidak muncul?**
+
 - Cek Firebase config
 - Cek Firestore rules
 - Lihat Console browser (F12) untuk error
 
 **Sync gagal?**
+
 - Pastikan Google Sheet sudah dipublish
 - Cek format URL (harus .../export?format=csv)
 - Cek koneksi internet
 
 **Checkbox tidak bisa diklik?**
+
 - Cek Firestore rules allow write
 - Cek koneksi Firebase
 
