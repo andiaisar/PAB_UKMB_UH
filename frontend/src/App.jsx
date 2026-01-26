@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import ImportExcel from './ImportExcel'
+import KartuKontrol from './KartuKontrol'
 
 function App() {
+  const [activeTab, setActiveTab] = useState('import')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -20,8 +24,35 @@ function App() {
             <div className="h-1 w-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full"></div>
           </div>
         </div>
-        
-        <ImportExcel />
+
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-2 inline-flex gap-2">
+            <button
+              onClick={() => setActiveTab('import')}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                activeTab === 'import'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📁 Import Data
+            </button>
+            <button
+              onClick={() => setActiveTab('kartu')}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                activeTab === 'kartu'
+                  ? 'bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              📋 Kartu Kontrol
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        {activeTab === 'import' ? <ImportExcel /> : <KartuKontrol />}
       </div>
     </div>
   )

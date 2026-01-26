@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from './firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 function ImportExcel() {
   const [data, setData] = useState([]);
@@ -30,11 +30,16 @@ function ImportExcel() {
 
     setLoading(true);
     try {
-      const usersCollection = collection(db, 'users');
-      
       for (const item of data) {
-        await addDoc(usersCollection, {
-          nim: item.NIM || '',
+        const nim = item.NIM || '';
+        if (!nim) {
+          console.warn('Skipping row with empty NIM:', item);
+          continue;
+        }
+        
+        const userDocRef = doc(db, 'users', nim);
+        await setDoc(userDocRef, {
+          nim: nim,
           nama: item.Nama || '',
           fakultas: item.Fakultas || '',
           whatsapp: item.WhatsApp || '',
