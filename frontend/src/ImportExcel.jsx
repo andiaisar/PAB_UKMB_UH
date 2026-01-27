@@ -63,6 +63,9 @@ function ImportExcel() {
           nama: item.Nama || '',
           fakultas: item.Fakultas || '',
           whatsapp: item.WhatsApp || '',
+          foto: item.Foto || '',
+          jumlah_kepanitiaan: parseInt(item.Kepanitiaan) || 0,
+          jumlah_rapat: parseInt(item.Rapat) || 0,
           poin_aktif: 0,
           pab_progress: {
             wawancara: false,

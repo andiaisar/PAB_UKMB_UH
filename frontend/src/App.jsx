@@ -11,7 +11,7 @@ function App() {
         {/* Header Title */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold text-blue-700 mb-2">
-            Sistem PAB & Kartu Kontrol UKM
+            Sistem PAB & Kartu Kontrol UKMB
           </h1>
           <p className="text-gray-600 font-medium">Dashboard Evaluasi Keaktifan Anggota</p>
         </div>
