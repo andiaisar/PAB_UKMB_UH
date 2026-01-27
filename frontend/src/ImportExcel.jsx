@@ -30,12 +30,32 @@ function ImportExcel() {
 
     setLoading(true);
     try {
+      // Filter duplikasi berdasarkan NIM dan Nama yang sama
+      const uniqueData = [];
+      const seenEntries = new Map();
+      
       for (const item of data) {
         const nim = item.NIM || '';
+        const nama = item.Nama || '';
+        const key = `${nim}_${nama}`;
+        
         if (!nim) {
           console.warn('Skipping row with empty NIM:', item);
           continue;
         }
+        
+        // Hanya ambil yang pertama jika NIM dan nama sama
+        if (!seenEntries.has(key)) {
+          seenEntries.set(key, true);
+          uniqueData.push(item);
+        } else {
+          console.log('Skipping duplicate entry:', { nim, nama });
+        }
+      }
+      
+      // Simpan data yang sudah unik
+      for (const item of uniqueData) {
+        const nim = item.NIM || '';
         
         const userDocRef = doc(db, 'users', nim);
         await setDoc(userDocRef, {
@@ -52,7 +72,12 @@ function ImportExcel() {
         });
       }
 
-      alert(`Berhasil menyimpan ${data.length} data ke Firestore!`);
+      const duplicateCount = data.length - uniqueData.length;
+      const message = duplicateCount > 0 
+        ? `Berhasil menyimpan ${uniqueData.length} data ke Firestore! (${duplicateCount} data duplikat dilewati)`
+        : `Berhasil menyimpan ${uniqueData.length} data ke Firestore!`;
+      
+      alert(message);
       setData([]);
     } catch (error) {
       console.error('Error saving to Firestore:', error);
