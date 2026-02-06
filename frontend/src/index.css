@@ -108,3 +108,47 @@
   background: #dbeafe;
   border-radius: 10px;
 }
+
+/* Print Styles for Kartu Kontrol Export PDF */
+@media print {
+  /* Hide navigation and buttons */
+  nav, button, .no-print {
+    display: none !important;
+  }
+
+  /* Full width for table */
+  body {
+    margin: 0;
+    padding: 20px;
+  }
+
+  /* Show only table content */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    text-align: left;
+  }
+
+  /* Remove alternating background colors for print */
+  tr {
+    background-color: white !important;
+  }
+
+  /* Keep header dark */
+  thead {
+    background-color: #1e293b !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure page breaks properly */
+  tr {
+    page-break-inside: avoid;
+  }
+}
