@@ -9,6 +9,7 @@ function Navbar() {
   const navItems = [
     { path: '/status-pab', label: 'Status PAB', icon: '📋' },
     { path: '/kartu-kontrol', label: 'Kartu Kontrol', icon: '🏆' },
+    { path: '/import-excel', label: 'Import Excel', icon: '📊' },
   ];
 
   return (

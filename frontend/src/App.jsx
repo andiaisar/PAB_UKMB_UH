@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import KartuKontrol from './KartuKontrol';
 import StatusPAB from './pages/StatusPAB';
+import ImportExcel from './ImportExcel';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route path="/" element={<Navigate to="/status-pab" replace />} />
             <Route path="/status-pab" element={<StatusPAB />} />
             <Route path="/kartu-kontrol" element={<KartuKontrol />} />
+            <Route path="/import-excel" element={<ImportExcel />} />
           </Routes>
         </div>
       </main>

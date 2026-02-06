@@ -111,44 +111,132 @@
 
 /* Print Styles for Kartu Kontrol Export PDF */
 @media print {
-  /* Hide navigation and buttons */
-  nav, button, .no-print {
+  /* Hide navigation, buttons, filters, search, and action column */
+  nav, button, .no-print, input, label {
     display: none !important;
   }
 
-  /* Full width for table */
-  body {
-    margin: 0;
-    padding: 20px;
+  /* Show print-only header */
+  .print\:block {
+    display: block !important;
   }
 
-  /* Show only table content */
+  /* Style the print header */
+  .hidden.print\:block h1 {
+    font-size: 20pt;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .hidden.print\:block h2 {
+    font-size: 14pt;
+    margin-bottom: 3px;
+  }
+
+  .hidden.print\:block p {
+    font-size: 10pt;
+    margin-bottom: 15px;
+  }
+
+  /* Full width for content */
+  body {
+    margin: 0;
+    padding: 15px;
+  }
+
+  /* Container for table */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  /* Table styling with clear borders */
   table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
+    border: 2px solid #000 !important;
   }
 
+  /* Strong borders for all cells */
   th, td {
-    border: 1px solid #000 !important;
-    padding: 8px !important;
+    border: 2px solid #000 !important;
+    padding: 10px !important;
     text-align: left;
+    font-size: 10pt;
+    vertical-align: middle;
+  }
+
+  /* Header styling */
+  thead th {
+    background-color: #1e293b !important;
+    color: white !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border: 2px solid #000 !important;
+  }
+
+  /* Center align for numeric columns */
+  th:nth-child(1), td:nth-child(1),
+  th:nth-child(5), td:nth-child(5),
+  th:nth-child(6), td:nth-child(6),
+  th:nth-child(7), td:nth-child(7) {
+    text-align: center !important;
+  }
+
+  /* Left align for text columns */
+  th:nth-child(2), td:nth-child(2),
+  th:nth-child(3), td:nth-child(3),
+  th:nth-child(4), td:nth-child(4) {
+    text-align: left !important;
   }
 
   /* Remove alternating background colors for print */
-  tr {
+  tbody tr {
     background-color: white !important;
-  }
-
-  /* Keep header dark */
-  thead {
-    background-color: #1e293b !important;
-    color: white !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
   /* Ensure page breaks properly */
   tr {
     page-break-inside: avoid;
+  }
+
+  /* Remove badges styling - show plain text with bold */
+  .inline-flex.items-center,
+  span.inline-flex {
+    display: inline !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    border-radius: 0 !important;
+  }
+
+  /* Hide background gradients and colored boxes */
+  .bg-gradient-to-r, .bg-gradient-to-br,
+  .bg-blue-50, .bg-blue-100, .bg-green-100,
+  .bg-yellow-100, .bg-red-100,
+  .rounded-xl, .rounded-2xl, .rounded-3xl,
+  .shadow, .shadow-lg, .shadow-2xl {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Make nested divs in cells display inline */
+  td div {
+    display: inline !important;
+  }
+
+  /* Remove flex formatting in print */
+  .flex, .flex-col {
+    display: inline !important;
+  }
+
+  /* Hide small helper text in cells */
+  td .text-xs {
+    display: none !important;
   }
 }

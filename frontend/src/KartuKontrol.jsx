@@ -185,8 +185,15 @@ function KartuKontrol() {
 
   return (
     <div className="animate-fadeIn">
+      {/* Print Only Header */}
+      <div className="hidden print:block text-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">KARTU KONTROL KEAKTIFAN</h1>
+        <h2 className="text-lg text-gray-700">Finalis UKMB - Status Lulus & Lulus Bersyarat</h2>
+        <p className="text-sm text-gray-600 mt-2">Tanggal Cetak: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      </div>
+
       {/* Header with Export Button */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between no-print">
         <div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Kartu Kontrol Keaktifan</h2>
           <p className="text-gray-600">Finalis: Peserta dengan Status Lulus / Lulus Bersyarat</p>
@@ -220,7 +227,7 @@ function KartuKontrol() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 no-print">
             <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -277,7 +284,7 @@ function KartuKontrol() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-200">
-            <div className="mb-8 space-y-6">
+            <div className="mb-8 space-y-6 no-print">
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,7 +458,7 @@ function KartuKontrol() {
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
                       Total Poin
                     </th>
-                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700 no-print">
                       Aksi
                     </th>
                   </tr>
@@ -496,7 +503,7 @@ function KartuKontrol() {
                             {calculateTotalPoin(user)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center border-b border-gray-200">
+                        <td className="px-6 py-4 text-center border-b border-gray-200 no-print">
                           <button
                             onClick={() => handleEdit(user)}
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
