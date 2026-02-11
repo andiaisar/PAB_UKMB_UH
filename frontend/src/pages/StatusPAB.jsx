@@ -15,6 +15,12 @@ function StatusPAB() {
       diklat: false
     }
   });
+  const [antrianRefresh, setAntrianRefresh] = useState(0);
+  const [penilaianFisikUser, setPenilaianFisikUser] = useState(null);
+  const [penilaianFisikData, setPenilaianFisikData] = useState({
+    nilai_fisik: '',
+    catatan_atlet: ''
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -119,6 +125,89 @@ function StatusPAB() {
     }
   };
 
+  const handleAntre = async (user) => {
+    try {
+      const userDocRef = doc(db, 'users', user.id);
+      const timestamp = new Date().toISOString();
+      
+      await updateDoc(userDocRef, {
+        wawancara_timestamp: timestamp
+      });
+
+      setUsers(users.map(u => 
+        u.id === user.id 
+          ? { ...u, wawancara_timestamp: timestamp }
+          : u
+      ));
+
+      setAntrianRefresh(prev => prev + 1);
+      alert(`${user.nama} berhasil masuk antrian wawancara!`);
+    } catch (error) {
+      console.error('Error adding to queue:', error);
+      alert('Gagal menambahkan ke antrian: ' + error.message);
+    }
+  };
+
+  const handleOpenPenilaianFisik = (user) => {
+    setPenilaianFisikUser(user);
+    setPenilaianFisikData({
+      nilai_fisik: user.nilai_fisik || '',
+      catatan_atlet: user.catatan_atlet || ''
+    });
+  };
+
+  const handleClosePenilaianFisik = () => {
+    setPenilaianFisikUser(null);
+    setPenilaianFisikData({
+      nilai_fisik: '',
+      catatan_atlet: ''
+    });
+  };
+
+  const handleSavePenilaianFisik = async () => {
+    if (!penilaianFisikUser) return;
+
+    // Validasi nilai fisik
+    const nilai = parseFloat(penilaianFisikData.nilai_fisik);
+    if (isNaN(nilai) || nilai < 0 || nilai > 100) {
+      alert('Nilai fisik harus berupa angka antara 0-100!');
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', penilaianFisikUser.id);
+      await updateDoc(userDocRef, {
+        nilai_fisik: nilai,
+        catatan_atlet: penilaianFisikData.catatan_atlet
+      });
+
+      setUsers(users.map(user => 
+        user.id === penilaianFisikUser.id 
+          ? { ...user, nilai_fisik: nilai, catatan_atlet: penilaianFisikData.catatan_atlet }
+          : user
+      ));
+
+      handleClosePenilaianFisik();
+      alert('Penilaian fisik berhasil disimpan!');
+    } catch (error) {
+      console.error('Error saving penilaian fisik:', error);
+      alert('Gagal menyimpan penilaian: ' + error.message);
+    }
+  };
+
+
+  // Filter untuk antrian wawancara
+  const antrianWawancara = users
+    .filter(user => {
+      // Hanya tampilkan yang sudah antre tapi belum lulus wawancara
+      return user.wawancara_timestamp && !user.pab_progress?.wawancara;
+    })
+    .sort((a, b) => {
+      // Urutkan berdasarkan timestamp (FIFO - First In First Out)
+      const timeA = new Date(a.wawancara_timestamp).getTime();
+      const timeB = new Date(b.wawancara_timestamp).getTime();
+      return timeA - timeB;
+    });
 
   // Process users: filter by search term, filter by status, and sort by checklist completion
   const processedUsers = users
@@ -185,6 +274,85 @@ function StatusPAB() {
         </div>
       ) : (
         <>
+          {/* Antrian Wawancara */}
+          {antrianWawancara.length > 0 && (
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 shadow-lg border-2 border-purple-300 mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800">🎤 Antrian Wawancara Hari Ini</h3>
+                  <p className="text-sm text-gray-600 font-medium">Total {antrianWawancara.length} peserta sedang menunggu</p>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl border-2 border-purple-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">No. Antrian</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">NIM</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">Nama</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">Fakultas</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">Waktu Antre</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase">Durasi Tunggu</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {antrianWawancara.map((user, index) => {
+                        const antrianTime = new Date(user.wawancara_timestamp);
+                        const now = new Date();
+                        const waitMinutes = Math.floor((now - antrianTime) / 1000 / 60);
+                        
+                        return (
+                          <tr key={user.id} className={`${
+                            index === 0 ? 'bg-yellow-50 border-l-4 border-yellow-500' : 
+                            index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                          } hover:bg-purple-50 transition-colors`}>
+                            <td className="px-4 py-3 text-sm font-black text-purple-700">
+                              {index === 0 ? (
+                                <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
+                                  🔥 SELANJUTNYA
+                                </span>
+                              ) : (
+                                <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-bold">
+                                  #{index + 1}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-mono font-bold text-gray-800">{user.nim}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-gray-900">{user.nama}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                {user.fakultas}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-700 font-medium">
+                              {antrianTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className={`font-bold ${
+                                waitMinutes > 30 ? 'text-red-600' : 
+                                waitMinutes > 15 ? 'text-orange-600' : 
+                                'text-green-600'
+                              }`}>
+                                {waitMinutes} menit
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
@@ -405,21 +573,66 @@ function StatusPAB() {
                         <tr key={user.id} className={`transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 border-b border-gray-200">{index + 1}</td>
                           <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">{user.nama}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <span>{user.nama}</span>
+                              {user.nilai_fisik > 80 && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-yellow-500 text-white shadow-md animate-pulse">
+                                  ⭐ Potensi Atlet
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-6 py-4 text-sm border-b border-gray-200">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                               {user.fakultas}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
-                            <span className="text-2xl">
-                              {user.pab_progress?.wawancara ? '✅' : '⭕'}
-                            </span>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-2xl">
+                                {user.pab_progress?.wawancara ? '✅' : '⭕'}
+                              </span>
+                              {!user.pab_progress?.wawancara && !user.wawancara_timestamp && (
+                                <button
+                                  onClick={() => handleAntre(user)}
+                                  className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xs font-bold rounded-lg shadow-md transition-all hover:scale-105"
+                                  title="Klik untuk masuk antrian wawancara"
+                                >
+                                  Antre
+                                </button>
+                              )}
+                              {!user.pab_progress?.wawancara && user.wawancara_timestamp && (
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-lg border border-yellow-300">
+                                  🕐 Antre
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
-                            <span className="text-2xl">
-                              {user.pab_progress?.fisik ? '✅' : '⭕'}
-                            </span>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-2xl">
+                                {user.pab_progress?.fisik ? '✅' : '⭕'}
+                              </span>
+                              <button
+                                onClick={() => handleOpenPenilaianFisik(user)}
+                                className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg shadow-md transition-all hover:scale-110"
+                                title="Input Nilai & Catatan Fisik"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              {user.nilai_fisik && (
+                                <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                                  user.nilai_fisik > 80 ? 'bg-purple-100 text-purple-800 border border-purple-300' :
+                                  user.nilai_fisik > 60 ? 'bg-green-100 text-green-800 border border-green-300' :
+                                  'bg-orange-100 text-orange-800 border border-orange-300'
+                                }`}>
+                                  {user.nilai_fisik}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
                             <span className="text-2xl">
@@ -468,6 +681,119 @@ function StatusPAB() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Modal Penilaian Fisik */}
+      {penilaianFisikUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border-2 border-blue-200">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+            
+            {/* Header */}
+            <div className="flex-shrink-0 p-6 pb-4">
+              <div className="flex items-center justify-between mb-6 mt-4">
+                <div className="flex items-center gap-4">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-2xl shadow-xl">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-gray-800">Penilaian Fisik</h2>
+                    <p className="text-gray-600 text-sm mt-1 font-medium">Input nilai & catatan atlet</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleClosePenilaianFisik}
+                  className="text-gray-400 hover:text-red-500 hover:bg-red-100 p-3 rounded-2xl transition-all"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-blue-300 shadow-xl">
+                <div className="space-y-3">
+                  <p className="text-sm flex items-center gap-3">
+                    <span className="font-black text-blue-600">🎫 NIM:</span>
+                    <span className="font-mono font-bold text-gray-800">{penilaianFisikUser.nim}</span>
+                  </p>
+                  <p className="text-sm flex items-center gap-3">
+                    <span className="font-black text-indigo-600">👤 Nama:</span>
+                    <span className="font-bold text-gray-800">{penilaianFisikUser.nama}</span>
+                  </p>
+                  <p className="text-sm flex items-center gap-3">
+                    <span className="font-black text-purple-600">🏛️ Fakultas:</span>
+                    <span className="font-bold text-gray-800">{penilaianFisikUser.fakultas}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Input Nilai Fisik */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📊</span>
+                  <span className="text-lg font-black text-gray-800">Nilai Fisik (0-100)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={penilaianFisikData.nilai_fisik}
+                  onChange={(e) => setPenilaianFisikData({ ...penilaianFisikData, nilai_fisik: e.target.value })}
+                  className="w-full px-6 py-4 border-2 border-blue-300 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 font-bold text-lg shadow-lg"
+                  placeholder="Contoh: 85.5"
+                />
+                {penilaianFisikData.nilai_fisik > 80 && (
+                  <div className="bg-gradient-to-r from-purple-100 to-yellow-100 border-2 border-purple-300 rounded-xl p-4">
+                    <p className="text-sm font-bold text-purple-800 flex items-center gap-2">
+                      <span className="text-2xl">⭐</span>
+                      Badge "Potensi Atlet" akan ditampilkan (Nilai &gt; 80)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Catatan Atlet */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 text-sm font-bold text-gray-700">
+                  <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📝</span>
+                  <span className="text-lg font-black text-gray-800">Catatan Atlet</span>
+                </label>
+                <textarea
+                  value={penilaianFisikData.catatan_atlet}
+                  onChange={(e) => setPenilaianFisikData({ ...penilaianFisikData, catatan_atlet: e.target.value })}
+                  rows="5"
+                  className="w-full px-6 py-4 border-2 border-indigo-300 rounded-2xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all text-gray-700 font-medium shadow-lg resize-none"
+                  placeholder="Tuliskan catatan tentang potensi atlet, kekuatan, area yang perlu ditingkatkan, dll..."
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex-shrink-0 p-6 pt-4 bg-gray-50 border-t-2 border-gray-200">
+              <div className="flex gap-4">
+                <button
+                  onClick={handleClosePenilaianFisik}
+                  className="flex-1 px-8 py-5 border-2 border-gray-300 text-gray-700 rounded-2xl font-black hover:bg-gray-100 transition-all shadow-lg"
+                >
+                  ❌ Batal
+                </button>
+                <button
+                  onClick={handleSavePenilaianFisik}
+                  className="flex-1 px-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black shadow-2xl transition-all"
+                >
+                  💾 Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal Edit User */}

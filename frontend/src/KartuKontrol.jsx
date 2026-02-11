@@ -227,7 +227,7 @@ function KartuKontrol() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 no-print">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 no-print">
             <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -239,6 +239,19 @@ function KartuKontrol() {
                   <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow p-6 border border-yellow-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold mb-1">Calon Atlet</p>
+                  <p className="text-4xl font-bold text-yellow-600">{processedUsers.filter(u => u.nilai_fisik > 80).length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Nilai Fisik &gt;80</p>
+                </div>
+                <div className="bg-yellow-100 p-3 rounded-lg">
+                  <span className="text-3xl">⭐</span>
                 </div>
               </div>
             </div>
@@ -391,7 +404,7 @@ function KartuKontrol() {
                   </div>
                   <span className="font-bold text-gray-800 text-base uppercase tracking-wide">Legenda Kategori Poin</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl shadow-md border-2 border-green-200">
                     <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-md"></div>
                     <div>
@@ -412,6 +425,16 @@ function KartuKontrol() {
                       <p className="text-gray-900 font-bold text-sm">Poin &lt; 40</p>
                       <p className="text-red-600 font-extrabold text-xs">Kategori Kurang</p>
                     </div>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md">
+                      ⭐ Calon Atlet
+                    </span>
+                    <p className="text-sm text-gray-700 font-semibold">
+                      = Peserta dengan Nilai Fisik &gt; 80 (Potensi Atlet Unggulan)
+                    </p>
                   </div>
                 </div>
               </div>
@@ -476,7 +499,16 @@ function KartuKontrol() {
                       <tr key={user.id} className={`transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                         <td className="px-6 py-4 text-sm font-medium text-gray-900 border-b border-gray-200">{index + 1}</td>
                         <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">{user.nama}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
+                          <div className="flex items-center gap-2">
+                            <span>{user.nama}</span>
+                            {user.nilai_fisik > 80 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md">
+                                ⭐ Calon Atlet
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 text-sm border-b border-gray-200">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                             {user.fakultas}
