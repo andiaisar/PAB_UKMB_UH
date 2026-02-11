@@ -91,19 +91,19 @@ function ImportExcel() {
   };
 
   return (
-    <div className="container mx-auto">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100 backdrop-blur-sm">
+    <div className="container mx-auto px-2 md:px-0">
+      <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-8 border border-gray-100 backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-3 rounded-xl">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">Import Data Camaba dari Excel</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-800">Import Data Camaba dari Excel</h1>
         </div>
         
-        <div className="mb-8">
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
+        <div className="mb-6 md:mb-8">
+          <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-3">
             📁 Pilih File Excel (.xlsx)
           </label>
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-500 transition-colors duration-300 bg-gradient-to-br from-gray-50 to-blue-50">
@@ -124,15 +124,15 @@ function ImportExcel() {
           <>
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  <span className="text-2xl">📊</span>
+              <h2 className="text-lg md:text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-xl md:text-2xl">📊</span>
                   Preview Data
                 </h2>
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
                   {data.length} baris
                 </span>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
+              <div className="overflow-x-auto -mx-4 md:mx-0 md:rounded-xl border-t md:border border-gray-200 shadow-lg">
                 <table className="min-w-full bg-white">
                   <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                     <tr>

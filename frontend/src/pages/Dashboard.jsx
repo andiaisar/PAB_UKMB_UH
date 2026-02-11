@@ -80,44 +80,44 @@ function Dashboard() {
   return (
     <div className="animate-fadeIn">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
-        <p className="text-gray-600">Ringkasan data keaktifan anggota UKMB</p>
+      <div className="mb-6 md:mb-8 px-2 md:px-0">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+        <p className="text-sm md:text-base text-gray-600">Ringkasan data keaktifan anggota UKMB</p>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8 px-2 md:px-0">
         {statCards.map((card, index) => (
           <div
             key={index}
-            className={`${card.bgColor} rounded-xl p-6 shadow-lg border border-gray-200 transform hover:scale-105 transition-all duration-300`}
+            className={`${card.bgColor} rounded-xl p-4 md:p-6 shadow-lg border border-gray-200 transform hover:scale-105 transition-all duration-300`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`text-4xl p-3 bg-gradient-to-br ${card.color} rounded-lg shadow-md`}>
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className={`text-3xl md:text-4xl p-2 md:p-3 bg-gradient-to-br ${card.color} rounded-lg shadow-md`}>
                 <span className="text-white">{card.icon}</span>
               </div>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">{card.title}</h3>
-            <p className={`text-4xl font-bold ${card.textColor}`}>{card.value}</p>
+            <h3 className="text-gray-600 text-xs md:text-sm font-medium mb-1">{card.title}</h3>
+            <p className={`text-2xl md:text-4xl font-bold ${card.textColor}`}>{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* Welcome Card */}
-      <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-200">
-        <div className="flex items-start space-x-4">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg p-4 shadow-lg">
-            <span className="text-4xl">👋</span>
+      <div className="bg-white rounded-xl p-4 md:p-8 shadow-lg border border-gray-200 mx-2 md:mx-0">
+        <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-4">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg p-3 md:p-4 shadow-lg">
+            <span className="text-3xl md:text-4xl">👋</span>
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">
               Selamat Datang di Sistem PAB & Kartu Kontrol UKMB
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-sm md:text-base text-gray-600 mb-4">
               Sistem ini dirancang untuk membantu Anda mengelola dan memantau keaktifan anggota UKMB 
               dengan lebih efisien. Gunakan menu navigasi di atas untuk mengakses berbagai fitur.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6">
               <div className="flex items-start space-x-3">
                 <span className="text-2xl">📋</span>
                 <div>

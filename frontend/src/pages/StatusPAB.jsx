@@ -259,9 +259,9 @@ function StatusPAB() {
   return (
     <div className="animate-fadeIn">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Status PAB - Monitoring Semua Peserta</h2>
-        <p className="text-gray-600">Progress Tahapan Wajib & Status Kelulusan (Diurutkan dari Checklist Terbanyak)</p>
+      <div className="mb-6 md:mb-8 px-2 md:px-0">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Status PAB - Monitoring Semua Peserta</h2>
+        <p className="text-sm md:text-base text-gray-600">Progress Tahapan Wajib & Status Kelulusan (Diurutkan dari Checklist Terbanyak)</p>
       </div>
 
       {users.length === 0 ? (
@@ -276,16 +276,16 @@ function StatusPAB() {
         <>
           {/* Antrian Wawancara */}
           {antrianWawancara.length > 0 && (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 shadow-lg border-2 border-purple-300 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 md:p-6 shadow-lg border-2 border-purple-300 mb-6 md:mb-8 mx-2 md:mx-0">
+              <div className="flex items-center gap-2 md:gap-3 mb-4">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 md:p-3 rounded-xl shadow-lg">
+                  <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-gray-800">🎤 Antrian Wawancara Hari Ini</h3>
-                  <p className="text-sm text-gray-600 font-medium">Total {antrianWawancara.length} peserta sedang menunggu</p>
+                  <h3 className="text-lg md:text-2xl font-black text-gray-800">🎤 Antrian Wawancara Hari Ini</h3>
+                  <p className="text-xs md:text-sm text-gray-600 font-medium">Total {antrianWawancara.length} peserta sedang menunggu</p>
                 </div>
               </div>
               
@@ -354,61 +354,61 @@ function StatusPAB() {
           )}
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Total Peserta</p>
-                  <p className="text-4xl font-bold text-gray-900">{users.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Semua Camaba</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 px-2 md:px-0">
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-gray-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Total Peserta</p>
+                  <p className="text-2xl md:text-4xl font-bold text-gray-900">{users.length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">Semua Camaba</p>
                 </div>
-                <div className="bg-indigo-100 p-3 rounded-lg">
-                  <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="bg-indigo-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <svg className="w-6 h-6 md:w-8 md:h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-green-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Lulus</p>
-                  <p className="text-4xl font-bold text-green-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 3).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">3 Checklist</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-green-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Lulus</p>
+                  <p className="text-2xl md:text-4xl font-bold text-green-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 3).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">3 Checklist</p>
                 </div>
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-green-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <svg className="w-6 h-6 md:w-8 md:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-yellow-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Lulus Bersyarat</p>
-                  <p className="text-4xl font-bold text-yellow-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 2).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">2 Checklist</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-yellow-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Lulus Bersyarat</p>
+                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 2).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">2 Checklist</p>
                 </div>
-                <div className="bg-yellow-100 p-3 rounded-lg">
-                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-yellow-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <svg className="w-6 h-6 md:w-8 md:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-red-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Tidak Lulus</p>
-                  <p className="text-4xl font-bold text-red-600">{users.filter(u => countChecklistCompleted(u.pab_progress) <= 1).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">0-1 Checklist</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-red-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Tidak Lulus</p>
+                  <p className="text-2xl md:text-4xl font-bold text-red-600">{users.filter(u => countChecklistCompleted(u.pab_progress) <= 1).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">0-1 Checklist</p>
                 </div>
-                <div className="bg-red-100 p-3 rounded-lg">
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-red-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <svg className="w-6 h-6 md:w-8 md:h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
@@ -416,13 +416,13 @@ function StatusPAB() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 border border-gray-200 mx-2 md:mx-0">
             {/* Search and Filter */}
-            <div className="mb-8 space-y-6">
+            <div className="mb-6 md:mb-8 space-y-4 md:space-y-6">
               {/* Search Input */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label className="flex items-center gap-2 text-xs md:text-sm font-bold text-gray-700 mb-3">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   Pencarian Data
@@ -433,7 +433,7 @@ function StatusPAB() {
                     placeholder="Ketik Nama, NIM, atau Fakultas untuk mencari..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-6 py-4 pl-14 pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-green-200 focus:border-green-500 outline-none transition-all text-gray-700 font-medium shadow-lg"
+                    className="w-full px-4 md:px-6 py-3 md:py-4 pl-12 md:pl-14 pr-10 md:pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-green-200 focus:border-green-500 outline-none transition-all text-sm md:text-base text-gray-700 font-medium shadow-lg"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <div className="bg-gradient-to-br from-green-500 to-teal-500 p-2 rounded-xl">
@@ -521,7 +521,7 @@ function StatusPAB() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white">
+            <div className="overflow-x-auto -mx-4 md:mx-0 md:rounded-lg border-t md:border border-gray-300 bg-white">
               <table className="min-w-full">
                 <thead className="bg-indigo-900 text-white">
                   <tr>

@@ -198,17 +198,17 @@ function KartuKontrol() {
       </div>
 
       {/* Header with Export Button */}
-      <div className="mb-8 flex items-center justify-between no-print">
+      <div className="mb-6 md:mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 no-print px-2 md:px-0">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Kartu Kontrol Keaktifan</h2>
-          <p className="text-gray-600">Finalis: Peserta dengan Status Lulus / Lulus Bersyarat</p>
-          <p className="text-sm text-indigo-600 font-medium mt-1">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Kartu Kontrol Keaktifan</h2>
+          <p className="text-sm md:text-base text-gray-600">Finalis: Peserta dengan Status Lulus / Lulus Bersyarat</p>
+          <p className="text-xs md:text-sm text-indigo-600 font-medium mt-1">
             ✓ Hanya menampilkan peserta dengan minimal 2 checklist PAB
           </p>
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-colors"
+          className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm md:text-base font-semibold rounded-lg shadow-lg transition-colors w-full md:w-auto justify-center"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -232,80 +232,80 @@ function KartuKontrol() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 no-print">
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Total Finalis</p>
-                  <p className="text-4xl font-bold text-indigo-600">{processedUsers.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">≥2 Checklist</p>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 mb-6 md:mb-8 no-print px-2 md:px-0">
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-gray-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Total Finalis</p>
+                  <p className="text-2xl md:text-4xl font-bold text-indigo-600">{processedUsers.length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">≥2 Checklist</p>
                 </div>
-                <div className="bg-indigo-100 p-3 rounded-lg">
-                  <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="bg-indigo-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <svg className="w-6 h-6 md:w-8 md:h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-yellow-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Calon Atlet</p>
-                  <p className="text-4xl font-bold text-yellow-600">{processedUsers.filter(u => u.nilai_fisik > 80).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Nilai Fisik &gt;80</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-yellow-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Calon Atlet</p>
+                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{processedUsers.filter(u => u.nilai_fisik > 80).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">Nilai Fisik &gt;80</p>
                 </div>
-                <div className="bg-yellow-100 p-3 rounded-lg">
-                  <span className="text-3xl">⭐</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-6 border border-green-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Poin Baik</p>
-                  <p className="text-4xl font-bold text-green-600">{processedUsers.filter(u => calculateTotalPoin(u) > 70).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">&gt; 70 poin</p>
-                </div>
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <span className="text-3xl">🌟</span>
+                <div className="bg-yellow-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <span className="text-2xl md:text-3xl">⭐</span>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-yellow-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Poin Cukup</p>
-                  <p className="text-4xl font-bold text-yellow-600">{processedUsers.filter(u => calculateTotalPoin(u) >= 40 && calculateTotalPoin(u) <= 70).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">40-70 poin</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-green-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Poin Baik</p>
+                  <p className="text-2xl md:text-4xl font-bold text-green-600">{processedUsers.filter(u => calculateTotalPoin(u) > 70).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">&gt; 70 poin</p>
                 </div>
-                <div className="bg-yellow-100 p-3 rounded-lg">
-                  <span className="text-3xl">⚡</span>
+                <div className="bg-green-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <span className="text-2xl md:text-3xl">🌟</span>
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6 border border-red-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-semibold mb-1">Poin Kurang</p>
-                  <p className="text-4xl font-bold text-red-600">{processedUsers.filter(u => calculateTotalPoin(u) < 40).length}</p>
-                  <p className="text-xs text-gray-500 mt-1">&lt; 40 poin</p>
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-yellow-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Poin Cukup</p>
+                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{processedUsers.filter(u => calculateTotalPoin(u) >= 40 && calculateTotalPoin(u) <= 70).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">40-70 poin</p>
                 </div>
-                <div className="bg-red-100 p-3 rounded-lg">
-                  <span className="text-3xl">⚠️</span>
+                <div className="bg-yellow-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <span className="text-2xl md:text-3xl">⚡</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-red-200">
+              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
+                <div className="mb-2 md:mb-0">
+                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Poin Kurang</p>
+                  <p className="text-2xl md:text-4xl font-bold text-red-600">{processedUsers.filter(u => calculateTotalPoin(u) < 40).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">&lt; 40 poin</p>
+                </div>
+                <div className="bg-red-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
+                  <span className="text-2xl md:text-3xl">⚠️</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-200">
-            <div className="mb-8 space-y-6 no-print">
+          <div className="bg-white rounded-3xl shadow-2xl p-4 md:p-8 border border-gray-200 mx-2 md:mx-0">
+            <div className="mb-6 md:mb-8 space-y-4 md:space-y-6 no-print">
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label className="flex items-center gap-2 text-xs md:text-sm font-bold text-gray-700 mb-3">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   Pencarian Data
@@ -316,7 +316,7 @@ function KartuKontrol() {
                     placeholder="Ketik Nama, NIM, atau Fakultas untuk mencari..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-6 py-4 pl-14 pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 font-medium shadow-lg"
+                    className="w-full px-4 md:px-6 py-3 md:py-4 pl-12 md:pl-14 pr-10 md:pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-sm md:text-base text-gray-700 font-medium shadow-lg"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <div className="bg-gradient-to-br from-blue-500 to-indigo-500 p-2 rounded-xl">
@@ -345,10 +345,10 @@ function KartuKontrol() {
                   </svg>
                   Filter Berdasarkan Kategori Poin
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                   <button
                     onClick={() => setFilterPoin('all')}
-                    className={`px-4 py-3 rounded-xl font-bold transition-all ${
+                    className={`px-3 md:px-4 py-2 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all ${
                       filterPoin === 'all'
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -445,7 +445,7 @@ function KartuKontrol() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white">
+            <div className="overflow-x-auto -mx-4 md:mx-0 md:rounded-lg border-t md:border border-gray-300 bg-white">
               <table className="min-w-full">
                 <thead className="bg-slate-800 text-white">
                   <tr>

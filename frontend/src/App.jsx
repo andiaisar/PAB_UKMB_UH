@@ -145,7 +145,7 @@ function App() {
       <Navbar />
 
       {/* Main Content with padding-top to account for fixed navbar */}
-      <main className="pt-20 px-6 pb-8">
+      <main className="pt-20 px-3 md:px-6 pb-6 md:pb-8">
         <div className="container mx-auto max-w-7xl">
           <Routes>
             <Route path="/" element={<Navigate to="/status-pab" replace />} />
