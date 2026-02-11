@@ -1,10 +1,23 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 
 function Navbar() {
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = async () => {
+    if (window.confirm('Apakah Anda yakin ingin logout?')) {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Gagal logout: ' + error.message);
+      }
+    }
+  };
 
   const navItems = [
     { path: '/status-pab', label: 'Status PAB', icon: '📋' },
@@ -43,6 +56,15 @@ function Navbar() {
                 <span>{item.label}</span>
               </Link>
             ))}
+            
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="ml-2 px-5 py-2 rounded-md font-medium transition-all duration-200 flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white shadow-lg"
+            >
+              <span>🚪</span>
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       </div>
