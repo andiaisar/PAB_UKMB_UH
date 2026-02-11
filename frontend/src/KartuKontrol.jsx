@@ -18,6 +18,7 @@ function KartuKontrol() {
   const [formData, setFormData] = useState({
     jumlah_kepanitiaan: 0,
     jumlah_rapat: 0,
+    poin_kinerja: 0,
   });
 
   useEffect(() => {
@@ -45,8 +46,8 @@ function KartuKontrol() {
   const calculateTotalPoin = (user) => {
     const kepanitian = (user.jumlah_kepanitiaan || 0) * STANDAR_POIN.KEPANITIAAN;
     const rapat = (user.jumlah_rapat || 0) * STANDAR_POIN.RAPAT;
-    const diklat = user.pab_progress?.diklat ? STANDAR_POIN.DIKLAT : 0;
-    return kepanitian + rapat + diklat;
+    const kinerja = user.poin_kinerja || 0;
+    return kepanitian + rapat + kinerja;
   };
 
   const countChecklistCompleted = (pabProgress) => {
@@ -69,6 +70,7 @@ function KartuKontrol() {
     setFormData({
       jumlah_kepanitiaan: user.jumlah_kepanitiaan || 0,
       jumlah_rapat: user.jumlah_rapat || 0,
+      poin_kinerja: user.poin_kinerja || 0,
     });
   };
 
@@ -77,6 +79,7 @@ function KartuKontrol() {
     setFormData({
       jumlah_kepanitiaan: 0,
       jumlah_rapat: 0,
+      poin_kinerja: 0,
     });
   };
 
@@ -88,6 +91,7 @@ function KartuKontrol() {
       await updateDoc(userDocRef, {
         jumlah_kepanitiaan: parseInt(formData.jumlah_kepanitiaan),
         jumlah_rapat: parseInt(formData.jumlah_rapat),
+        poin_kinerja: parseInt(formData.poin_kinerja),
       });
 
       setUsers(users.map(user => 
@@ -96,6 +100,7 @@ function KartuKontrol() {
               ...user, 
               jumlah_kepanitiaan: parseInt(formData.jumlah_kepanitiaan),
               jumlah_rapat: parseInt(formData.jumlah_rapat),
+              poin_kinerja: parseInt(formData.poin_kinerja),
             }
           : user
       ));
@@ -479,6 +484,9 @@ function KartuKontrol() {
                       Rapat
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                      Poin Aktif
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
                       Total Poin
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700 no-print">
@@ -489,7 +497,7 @@ function KartuKontrol() {
                 <tbody className="bg-white">
                   {processedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="px-6 py-12 text-center bg-gray-50">
+                      <td colSpan="9" className="px-6 py-12 text-center bg-gray-50">
                         <div className="text-4xl mb-2">🔍</div>
                         <p className="text-gray-600 font-medium">Tidak ada data yang sesuai dengan filter</p>
                       </td>
@@ -528,6 +536,14 @@ function KartuKontrol() {
                               {user.jumlah_rapat || 0}
                             </span>
                             <span className="text-xs text-gray-500">×5 poin</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center border-b border-gray-200">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-lg font-bold text-teal-600">
+                              {user.poin_kinerja || 0}
+                            </span>
+                            <span className="text-xs text-gray-500">poin manual</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center border-b border-gray-200">
@@ -629,6 +645,25 @@ function KartuKontrol() {
                     className="w-full px-6 py-5 border-2 border-orange-300 rounded-2xl focus:ring-4 focus:ring-orange-200 focus:border-orange-500 outline-none text-2xl font-black text-center text-orange-600 shadow-xl"
                     placeholder="0"
                   />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-3 text-sm font-bold text-gray-700 mb-3">
+                    <span className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">⭐</span>
+                    <span>Poin Keaktifan Tambahan <span className="text-teal-600">(subjektif)</span></span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={formData.poin_kinerja}
+                    onChange={(e) => setFormData({ ...formData, poin_kinerja: e.target.value })}
+                    className="w-full px-6 py-5 border-2 border-teal-300 rounded-2xl focus:ring-4 focus:ring-teal-200 focus:border-teal-500 outline-none text-2xl font-black text-center text-teal-600 shadow-xl"
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 text-center font-medium">
+                    💡 Nilai subjektif untuk anggota aktif di kepanitiaan (max 50 poin)
+                  </p>
                 </div>
               </div>
             </div>
