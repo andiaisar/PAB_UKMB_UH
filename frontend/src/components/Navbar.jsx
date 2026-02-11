@@ -31,8 +31,8 @@ function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo & Title */}
           <div className="flex items-center space-x-4">
-            <div className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-lg shadow-lg">
-              <span className="text-2xl font-bold text-white">U</span>
+            <div className="flex items-center justify-center w-12 h-12 bg-white rounded-lg shadow-lg overflow-hidden">
+              <img src="/logo.png" alt="UKMB Logo" className="w-full h-full object-contain p-1" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-white">UKMB Management</h1>

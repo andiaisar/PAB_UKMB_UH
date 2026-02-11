@@ -41,15 +41,9 @@ function LoginPage({ onLogin }) {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
         {/* Header Section */}
         <div className="bg-slate-800 px-8 py-10 text-center">
-          {/* Logo - Ganti dengan logo asli di src/assets/logo.png */}
+          {/* Logo */}
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-lg mb-4 overflow-hidden">
-            {/* Uncomment baris di bawah dan hapus placeholder setelah menambahkan logo */}
-            {/* <img src="/logo.png" alt="UKMB Logo" className="w-full h-full object-contain p-2" /> */}
-            
-            {/* Placeholder Logo - hapus setelah logo asli ditambahkan */}
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900">
-              <span className="text-3xl font-black text-white">UKMB</span>
-            </div>
+            <img src="/logo.png" alt="UKMB Logo" className="w-full h-full object-contain p-2" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">UKMB Management System</h1>
           <p className="text-slate-300 text-sm">Sistem Monitoring PAB</p>
