@@ -12,15 +12,15 @@ function StatusPAB() {
     pab_progress: {
       wawancara: false,
       fisik: false,
+      kemampuan: false,
       diklat: false
-    }
-  });
-  const [antrianRefresh, setAntrianRefresh] = useState(0);
-  const [penilaianFisikUser, setPenilaianFisikUser] = useState(null);
-  const [penilaianFisikData, setPenilaianFisikData] = useState({
-    nilai_fisik: '',
+    },
+    nilai_wawancara: 0,
+    nilai_fisik: 0,
+    nilai_kemampuan: 0,
     catatan_atlet: ''
   });
+  const [antrianRefresh, setAntrianRefresh] = useState(0);
 
   useEffect(() => {
     fetchUsers();
@@ -49,6 +49,7 @@ function StatusPAB() {
     let count = 0;
     if (pabProgress.wawancara) count++;
     if (pabProgress.fisik) count++;
+    if (pabProgress.kemampuan) count++;
     if (pabProgress.diklat) count++;
     return count;
   };
@@ -56,19 +57,19 @@ function StatusPAB() {
   const getKelulusanStatus = (pabProgress) => {
     const completed = countChecklistCompleted(pabProgress);
     
-    if (completed === 3) {
+    if (completed === 4) {
       return {
         text: '✅ LULUS',
         bgClass: 'bg-gradient-to-r from-green-500 to-teal-500',
         textClass: 'text-white',
-        weight: 3
+        weight: 4
       };
-    } else if (completed === 2) {
+    } else if (completed === 3) {
       return {
         text: '⚠️ LULUS BERSYARAT',
         bgClass: 'bg-gradient-to-r from-yellow-400 to-orange-400',
         textClass: 'text-white',
-        weight: 2
+        weight: 3
       };
     } else {
       return {
@@ -86,8 +87,13 @@ function StatusPAB() {
       pab_progress: {
         wawancara: user.pab_progress?.wawancara || false,
         fisik: user.pab_progress?.fisik || false,
+        kemampuan: user.pab_progress?.kemampuan || false,
         diklat: user.pab_progress?.diklat || false
-      }
+      },
+      nilai_wawancara: user.nilai_wawancara || 0,
+      nilai_fisik: user.nilai_fisik || 0,
+      nilai_kemampuan: user.nilai_kemampuan || 0,
+      catatan_atlet: user.catatan_atlet || ''
     });
   };
 
@@ -97,23 +103,57 @@ function StatusPAB() {
       pab_progress: {
         wawancara: false,
         fisik: false,
+        kemampuan: false,
         diklat: false
-      }
+      },
+      nilai_wawancara: 0,
+      nilai_fisik: 0,
+      nilai_kemampuan: 0,
+      catatan_atlet: ''
     });
   };
 
   const handleSaveChanges = async () => {
     if (!editingUser) return;
 
+    // Validasi nilai
+    const nilaiWawancara = parseFloat(formData.nilai_wawancara) || 0;
+    const nilaiFisik = parseFloat(formData.nilai_fisik) || 0;
+    const nilaiKemampuan = parseFloat(formData.nilai_kemampuan) || 0;
+
+    if (nilaiWawancara < 0 || nilaiWawancara > 30) {
+      alert('Nilai Wawancara harus antara 0-30!');
+      return;
+    }
+    if (nilaiFisik < 0 || nilaiFisik > 30) {
+      alert('Nilai Fisik harus antara 0-30!');
+      return;
+    }
+    if (nilaiKemampuan < 0 || nilaiKemampuan > 40) {
+      alert('Nilai Kemampuan harus antara 0-40!');
+      return;
+    }
+
     try {
       const userDocRef = doc(db, 'users', editingUser.id);
       await updateDoc(userDocRef, {
-        pab_progress: formData.pab_progress
+        pab_progress: formData.pab_progress,
+        nilai_wawancara: nilaiWawancara,
+        nilai_fisik: nilaiFisik,
+        nilai_kemampuan: nilaiKemampuan,
+        catatan_atlet: formData.catatan_atlet
       });
 
       setUsers(users.map(user => 
         user.id === editingUser.id 
-          ? { ...user, pab_progress: formData.pab_progress }
+          ? { 
+              ...user, 
+              pab_progress: formData.pab_progress,
+              nilai_wawancara: nilaiWawancara,
+              nilai_fisik: nilaiFisik,
+              nilai_kemampuan: nilaiKemampuan,
+              catatan_atlet: formData.catatan_atlet
+            }
           : user
       ));
 
@@ -148,53 +188,6 @@ function StatusPAB() {
     }
   };
 
-  const handleOpenPenilaianFisik = (user) => {
-    setPenilaianFisikUser(user);
-    setPenilaianFisikData({
-      nilai_fisik: user.nilai_fisik || '',
-      catatan_atlet: user.catatan_atlet || ''
-    });
-  };
-
-  const handleClosePenilaianFisik = () => {
-    setPenilaianFisikUser(null);
-    setPenilaianFisikData({
-      nilai_fisik: '',
-      catatan_atlet: ''
-    });
-  };
-
-  const handleSavePenilaianFisik = async () => {
-    if (!penilaianFisikUser) return;
-
-    // Validasi nilai fisik
-    const nilai = parseFloat(penilaianFisikData.nilai_fisik);
-    if (isNaN(nilai) || nilai < 0 || nilai > 100) {
-      alert('Nilai fisik harus berupa angka antara 0-100!');
-      return;
-    }
-
-    try {
-      const userDocRef = doc(db, 'users', penilaianFisikUser.id);
-      await updateDoc(userDocRef, {
-        nilai_fisik: nilai,
-        catatan_atlet: penilaianFisikData.catatan_atlet
-      });
-
-      setUsers(users.map(user => 
-        user.id === penilaianFisikUser.id 
-          ? { ...user, nilai_fisik: nilai, catatan_atlet: penilaianFisikData.catatan_atlet }
-          : user
-      ));
-
-      handleClosePenilaianFisik();
-      alert('Penilaian fisik berhasil disimpan!');
-    } catch (error) {
-      console.error('Error saving penilaian fisik:', error);
-      alert('Gagal menyimpan penilaian: ' + error.message);
-    }
-  };
-
 
   // Filter untuk antrian wawancara
   const antrianWawancara = users
@@ -223,9 +216,9 @@ function StatusPAB() {
     .filter(user => {
       if (filterStatus === 'all') return true;
       const completed = countChecklistCompleted(user.pab_progress);
-      if (filterStatus === 'lulus') return completed === 3;
-      if (filterStatus === 'bersyarat') return completed === 2;
-      if (filterStatus === 'tidak-lulus') return completed <= 1;
+      if (filterStatus === 'lulus') return completed === 4;
+      if (filterStatus === 'bersyarat') return completed === 3;
+      if (filterStatus === 'tidak-lulus') return completed <= 2;
       return true;
     })
     .sort((a, b) => {
@@ -261,7 +254,13 @@ function StatusPAB() {
       {/* Header */}
       <div className="mb-6 md:mb-8 px-2 md:px-0">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Status PAB - Monitoring Semua Peserta</h2>
-        <p className="text-sm md:text-base text-gray-600">Progress Tahapan Wajib & Status Kelulusan (Diurutkan dari Checklist Terbanyak)</p>
+        <p className="text-sm md:text-base text-gray-600">Progress Tahapan Wajib (Wawancara, Fisik, Kemampuan, Diklat) & Status Kelulusan</p>
+        <div className="mt-3 bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-300 rounded-xl p-3 md:p-4">
+          <p className="text-xs md:text-sm text-green-800 font-bold flex items-center gap-2">
+            <span className="text-lg">✅</span>
+            <span><strong>Syarat LULUS:</strong> Minimal 3 checklist tercapai + <strong className="text-green-600">Diklat WAJIB Hadir</strong></span>
+          </p>
+        </div>
       </div>
 
       {users.length === 0 ? (
@@ -374,8 +373,8 @@ function StatusPAB() {
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
                 <div className="mb-2 md:mb-0">
                   <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Lulus</p>
-                  <p className="text-2xl md:text-4xl font-bold text-green-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 3).length}</p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">3 Checklist</p>
+                  <p className="text-2xl md:text-4xl font-bold text-green-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 4).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">4 Checklist</p>
                 </div>
                 <div className="bg-green-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
                   <svg className="w-6 h-6 md:w-8 md:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,8 +388,8 @@ function StatusPAB() {
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
                 <div className="mb-2 md:mb-0">
                   <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Lulus Bersyarat</p>
-                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 2).length}</p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">2 Checklist</p>
+                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{users.filter(u => countChecklistCompleted(u.pab_progress) === 3).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">3 Checklist</p>
                 </div>
                 <div className="bg-yellow-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
                   <svg className="w-6 h-6 md:w-8 md:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -404,8 +403,8 @@ function StatusPAB() {
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
                 <div className="mb-2 md:mb-0">
                   <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Tidak Lulus</p>
-                  <p className="text-2xl md:text-4xl font-bold text-red-600">{users.filter(u => countChecklistCompleted(u.pab_progress) <= 1).length}</p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">0-1 Checklist</p>
+                  <p className="text-2xl md:text-4xl font-bold text-red-600">{users.filter(u => countChecklistCompleted(u.pab_progress) <= 2).length}</p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">0-2 Checklist</p>
                 </div>
                 <div className="bg-red-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
                   <svg className="w-6 h-6 md:w-8 md:h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,7 +481,7 @@ function StatusPAB() {
                         : 'bg-green-50 text-green-700 hover:bg-green-100'
                     }`}
                   >
-                    ✅ Lulus ({users.filter(u => countChecklistCompleted(u.pab_progress) === 3).length})
+                    ✅ Lulus ({users.filter(u => countChecklistCompleted(u.pab_progress) === 4).length})
                   </button>
                   <button
                     onClick={() => setFilterStatus('bersyarat')}
@@ -492,7 +491,7 @@ function StatusPAB() {
                         : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
                     }`}
                   >
-                    ⚠️ Bersyarat ({users.filter(u => countChecklistCompleted(u.pab_progress) === 2).length})
+                    ⚠️ Bersyarat ({users.filter(u => getKelulusanStatus(u.pab_progress).text === '⚠️ LULUS BERSYARAT').length})
                   </button>
                   <button
                     onClick={() => setFilterStatus('tidak-lulus')}
@@ -502,7 +501,7 @@ function StatusPAB() {
                         : 'bg-red-50 text-red-700 hover:bg-red-100'
                     }`}
                   >
-                    ❌ Tidak Lulus ({users.filter(u => countChecklistCompleted(u.pab_progress) <= 1).length})
+                    ❌ Tidak Lulus ({users.filter(u => getKelulusanStatus(u.pab_progress).text === '❌ TIDAK LULUS').length})
                   </button>
                 </div>
               </div>
@@ -518,6 +517,39 @@ function StatusPAB() {
                   </p>
                 </div>
               )}
+
+              {/* Legenda Status */}
+              <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 rounded-xl p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-bold text-gray-800 text-sm uppercase">Kriteria Status Kelulusan</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-green-200">
+                    <span className="text-lg">✅</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-green-700">LULUS</p>
+                      <p className="text-xs text-gray-600">Minimal 3 checklist tercapai + <strong className="text-green-600">Diklat Hadir (Wajib)</strong></p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-yellow-200">
+                    <span className="text-lg">⚠️</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-yellow-700">LULUS BERSYARAT</p>
+                      <p className="text-xs text-gray-600">2 checklist saja, atau 3+ checklist tapi <strong className="text-yellow-600">Diklat tidak hadir</strong></p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-red-200">
+                    <span className="text-lg">❌</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-red-700">TIDAK LULUS</p>
+                      <p className="text-xs text-gray-600">Kurang dari 2 checklist tercapai</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Table */}
@@ -542,10 +574,16 @@ function StatusPAB() {
                       Tes Fisik
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Tes Kemampuan
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Diklat
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Progress
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Total Skor PAB
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Status
@@ -558,7 +596,7 @@ function StatusPAB() {
                 <tbody className="bg-white">
                   {processedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="px-6 py-12 text-center bg-gray-50">
+                      <td colSpan="11" className="px-6 py-12 text-center bg-gray-50">
                         <div className="text-4xl mb-2">🔍</div>
                         <p className="text-gray-600 font-medium">Tidak ada data yang sesuai dengan filter</p>
                       </td>
@@ -567,7 +605,18 @@ function StatusPAB() {
                     processedUsers.map((user, index) => {
                       const status = getKelulusanStatus(user.pab_progress);
                       const completed = countChecklistCompleted(user.pab_progress);
-                      const progress = Math.round((completed / 3) * 100);
+                      const progress = Math.round((completed / 4) * 100);
+                      
+                      // Hitung total skor PAB
+                      const nilaiWawancara = user.nilai_wawancara || 0;
+                      const nilaiFisik = user.nilai_fisik || 0;
+                      const nilaiKemampuan = user.nilai_kemampuan || 0;
+                      const totalSkor = nilaiWawancara + nilaiFisik + nilaiKemampuan;
+                      
+                      // Tentukan warna total skor
+                      let skorColor = 'text-red-600 bg-red-50';
+                      if (totalSkor > 80) skorColor = 'text-green-600 bg-green-50';
+                      else if (totalSkor >= 60) skorColor = 'text-yellow-600 bg-yellow-50';
                       
                       return (
                         <tr key={user.id} className={`transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
@@ -576,9 +625,9 @@ function StatusPAB() {
                           <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
                             <div className="flex items-center gap-2">
                               <span>{user.nama}</span>
-                              {user.nilai_fisik > 80 && (
+                              {totalSkor > 80 && (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-yellow-500 text-white shadow-md animate-pulse">
-                                  ⭐ Potensi Atlet
+                                  ⭐ Nilai Tinggi
                                 </span>
                               )}
                             </div>
@@ -589,49 +638,49 @@ function StatusPAB() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
-                            <div className="flex items-center justify-center gap-2">
-                              <span className="text-2xl">
-                                {user.pab_progress?.wawancara ? '✅' : '⭕'}
-                              </span>
-                              {!user.pab_progress?.wawancara && !user.wawancara_timestamp && (
-                                <button
-                                  onClick={() => handleAntre(user)}
-                                  className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xs font-bold rounded-lg shadow-md transition-all hover:scale-105"
-                                  title="Klik untuk masuk antrian wawancara"
-                                >
-                                  Antre
-                                </button>
-                              )}
-                              {!user.pab_progress?.wawancara && user.wawancara_timestamp && (
-                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-lg border border-yellow-300">
-                                  🕐 Antre
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-2xl">
+                                  {user.pab_progress?.wawancara ? '✅' : '⭕'}
                                 </span>
-                              )}
+                                {!user.pab_progress?.wawancara && !user.wawancara_timestamp && (
+                                  <button
+                                    onClick={() => handleAntre(user)}
+                                    className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xs font-bold rounded-lg shadow-md transition-all hover:scale-105"
+                                    title="Klik untuk masuk antrian wawancara"
+                                  >
+                                    Antre
+                                  </button>
+                                )}
+                                {!user.pab_progress?.wawancara && user.wawancara_timestamp && (
+                                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-lg border border-yellow-300">
+                                    🕐 Antre
+                                  </span>
+                                )}
+                              </div>
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-800 border border-purple-300">
+                                {nilaiWawancara}/30
+                              </span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex flex-col items-center justify-center gap-2">
                               <span className="text-2xl">
                                 {user.pab_progress?.fisik ? '✅' : '⭕'}
                               </span>
-                              <button
-                                onClick={() => handleOpenPenilaianFisik(user)}
-                                className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg shadow-md transition-all hover:scale-110"
-                                title="Input Nilai & Catatan Fisik"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                              </button>
-                              {user.nilai_fisik && (
-                                <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
-                                  user.nilai_fisik > 80 ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                                  user.nilai_fisik > 60 ? 'bg-green-100 text-green-800 border border-green-300' :
-                                  'bg-orange-100 text-orange-800 border border-orange-300'
-                                }`}>
-                                  {user.nilai_fisik}
-                                </span>
-                              )}
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                {nilaiFisik}/30
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center border-b border-gray-200">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <span className="text-2xl">
+                                {user.pab_progress?.kemampuan ? '✅' : '⭕'}
+                              </span>
+                              <span className="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                                {nilaiKemampuan}/40
+                              </span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
@@ -641,7 +690,7 @@ function StatusPAB() {
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
                             <div className="flex flex-col items-center gap-2">
-                              <span className="text-sm font-bold text-gray-700">{completed}/3</span>
+                              <span className="text-sm font-bold text-gray-700">{completed}/4</span>
                               <div className="w-20 bg-gray-200 rounded-full h-2 overflow-hidden">
                                 <div 
                                   className={`h-full rounded-full transition-all ${
@@ -653,6 +702,14 @@ function StatusPAB() {
                                 ></div>
                               </div>
                               <span className="text-xs text-gray-500">{progress}%</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-center border-b border-gray-200">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className={`text-2xl font-black ${skorColor} px-4 py-2 rounded-xl border-2`}>
+                                {totalSkor}
+                              </span>
+                              <span className="text-xs text-gray-500 font-medium">/100</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
@@ -683,119 +740,6 @@ function StatusPAB() {
         </>
       )}
 
-      {/* Modal Penilaian Fisik */}
-      {penilaianFisikUser && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border-2 border-blue-200">
-            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-            
-            {/* Header */}
-            <div className="flex-shrink-0 p-6 pb-4">
-              <div className="flex items-center justify-between mb-6 mt-4">
-                <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-4 rounded-2xl shadow-xl">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-black text-gray-800">Penilaian Fisik</h2>
-                    <p className="text-gray-600 text-sm mt-1 font-medium">Input nilai & catatan atlet</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleClosePenilaianFisik}
-                  className="text-gray-400 hover:text-red-500 hover:bg-red-100 p-3 rounded-2xl transition-all"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-blue-300 shadow-xl">
-                <div className="space-y-3">
-                  <p className="text-sm flex items-center gap-3">
-                    <span className="font-black text-blue-600">🎫 NIM:</span>
-                    <span className="font-mono font-bold text-gray-800">{penilaianFisikUser.nim}</span>
-                  </p>
-                  <p className="text-sm flex items-center gap-3">
-                    <span className="font-black text-indigo-600">👤 Nama:</span>
-                    <span className="font-bold text-gray-800">{penilaianFisikUser.nama}</span>
-                  </p>
-                  <p className="text-sm flex items-center gap-3">
-                    <span className="font-black text-purple-600">🏛️ Fakultas:</span>
-                    <span className="font-bold text-gray-800">{penilaianFisikUser.fakultas}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Input Nilai Fisik */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                  <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📊</span>
-                  <span className="text-lg font-black text-gray-800">Nilai Fisik (0-100)</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={penilaianFisikData.nilai_fisik}
-                  onChange={(e) => setPenilaianFisikData({ ...penilaianFisikData, nilai_fisik: e.target.value })}
-                  className="w-full px-6 py-4 border-2 border-blue-300 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 font-bold text-lg shadow-lg"
-                  placeholder="Contoh: 85.5"
-                />
-                {penilaianFisikData.nilai_fisik > 80 && (
-                  <div className="bg-gradient-to-r from-purple-100 to-yellow-100 border-2 border-purple-300 rounded-xl p-4">
-                    <p className="text-sm font-bold text-purple-800 flex items-center gap-2">
-                      <span className="text-2xl">⭐</span>
-                      Badge "Potensi Atlet" akan ditampilkan (Nilai &gt; 80)
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Input Catatan Atlet */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                  <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📝</span>
-                  <span className="text-lg font-black text-gray-800">Catatan Atlet</span>
-                </label>
-                <textarea
-                  value={penilaianFisikData.catatan_atlet}
-                  onChange={(e) => setPenilaianFisikData({ ...penilaianFisikData, catatan_atlet: e.target.value })}
-                  rows="5"
-                  className="w-full px-6 py-4 border-2 border-indigo-300 rounded-2xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all text-gray-700 font-medium shadow-lg resize-none"
-                  placeholder="Tuliskan catatan tentang potensi atlet, kekuatan, area yang perlu ditingkatkan, dll..."
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex-shrink-0 p-6 pt-4 bg-gray-50 border-t-2 border-gray-200">
-              <div className="flex gap-4">
-                <button
-                  onClick={handleClosePenilaianFisik}
-                  className="flex-1 px-8 py-5 border-2 border-gray-300 text-gray-700 rounded-2xl font-black hover:bg-gray-100 transition-all shadow-lg"
-                >
-                  ❌ Batal
-                </button>
-                <button
-                  onClick={handleSavePenilaianFisik}
-                  className="flex-1 px-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black shadow-2xl transition-all"
-                >
-                  💾 Simpan
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal Edit User */}
       {editingUser && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
@@ -813,7 +757,7 @@ function StatusPAB() {
                   </div>
                   <div>
                     <h2 className="text-3xl font-black text-gray-800">Edit Status PAB</h2>
-                    <p className="text-gray-600 text-sm mt-1 font-medium">Perbarui checklist tahapan</p>
+                    <p className="text-gray-600 text-sm mt-1 font-medium">Update checklist, nilai & catatan</p>
                   </div>
                 </div>
                 <button
@@ -881,6 +825,20 @@ function StatusPAB() {
                     <span className="text-3xl">{formData.pab_progress.fisik ? '✅' : '⭕'}</span>
                   </label>
 
+                  <label className="flex items-center gap-4 p-5 border-2 border-white bg-white/80 rounded-2xl hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 hover:border-indigo-400 cursor-pointer transition-all shadow-lg hover:shadow-2xl group hover:scale-105">
+                    <input
+                      type="checkbox"
+                      checked={formData.pab_progress.kemampuan}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        pab_progress: { ...formData.pab_progress, kemampuan: e.target.checked }
+                      })}
+                      className="w-7 h-7 text-indigo-600 rounded-xl focus:ring-4 focus:ring-indigo-400 border-2 border-gray-300"
+                    />
+                    <span className="text-gray-800 font-black text-base flex-1">💡 Tes Kemampuan</span>
+                    <span className="text-3xl">{formData.pab_progress.kemampuan ? '✅' : '⭕'}</span>
+                  </label>
+
                   <label className="flex items-center gap-4 p-5 border-2 border-white bg-white/80 rounded-2xl hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 hover:border-purple-400 cursor-pointer transition-all shadow-lg hover:shadow-2xl group hover:scale-105">
                     <input
                       type="checkbox"
@@ -897,18 +855,103 @@ function StatusPAB() {
                 </div>
               </div>
 
+              {/* Input Nilai Tes */}
+              <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-purple-200 shadow-lg">
+                <label className="flex items-center gap-3 text-sm font-bold text-gray-700 mb-5">
+                  <span className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📊</span>
+                  <span className="text-lg font-black text-gray-800">Nilai Tes PAB</span>
+                </label>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 mb-2 block">🎤 Nilai Wawancara (Maks 30)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      step="0.5"
+                      value={formData.nilai_wawancara}
+                      onChange={(e) => setFormData({ ...formData, nilai_wawancara: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-purple-300 rounded-xl focus:ring-4 focus:ring-purple-200 focus:border-purple-500 outline-none transition-all text-gray-700 font-bold"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 mb-2 block">🏃 Nilai Fisik (Maks 30)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="30"
+                      step="0.5"
+                      value={formData.nilai_fisik}
+                      onChange={(e) => setFormData({ ...formData, nilai_fisik: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all text-gray-700 font-bold"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 mb-2 block">💡 Nilai Kemampuan (Maks 40)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="40"
+                      step="0.5"
+                      value={formData.nilai_kemampuan}
+                      onChange={(e) => setFormData({ ...formData, nilai_kemampuan: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-indigo-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all text-gray-700 font-bold"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="bg-white border-2 border-gray-300 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-gray-700">Total Skor:</span>
+                      <span className="text-2xl font-black text-indigo-600">
+                        {(parseFloat(formData.nilai_wawancara) || 0) + (parseFloat(formData.nilai_fisik) || 0) + (parseFloat(formData.nilai_kemampuan) || 0)} / 100
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Catatan Atlet */}
+              <div className="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 p-6 rounded-2xl border-2 border-orange-200 shadow-lg">
+                <label className="flex items-center gap-3 text-sm font-bold text-gray-700 mb-5">
+                  <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📝</span>
+                  <span className="text-lg font-black text-gray-800">Catatan Atlet</span>
+                </label>
+                <textarea
+                  value={formData.catatan_atlet}
+                  onChange={(e) => setFormData({ ...formData, catatan_atlet: e.target.value })}
+                  rows="4"
+                  className="w-full px-4 py-3 border-2 border-orange-300 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-500 outline-none transition-all text-gray-700 font-medium resize-none"
+                  placeholder="Tuliskan catatan tentang potensi atlet, kekuatan, area yang perlu ditingkatkan, dll..."
+                />
+              </div>
+
               {/* Preview Status */}
               <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5">
                 <p className="text-sm font-bold text-gray-700 mb-3">Preview Status:</p>
                 {(() => {
                   const previewStatus = getKelulusanStatus(formData.pab_progress);
                   const previewCompleted = countChecklistCompleted(formData.pab_progress);
+                  const previewTotal = (parseFloat(formData.nilai_wawancara) || 0) + (parseFloat(formData.nilai_fisik) || 0) + (parseFloat(formData.nilai_kemampuan) || 0);
+                  let previewSkorColor = 'text-red-600';
+                  if (previewTotal > 80) previewSkorColor = 'text-green-600';
+                  else if (previewTotal >= 60) previewSkorColor = 'text-yellow-600';
+                  
                   return (
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-block ${previewStatus.bgClass} ${previewStatus.textClass} px-6 py-3 rounded-2xl font-black text-sm shadow-xl`}>
-                        {previewStatus.text}
-                      </span>
-                      <span className="text-2xl font-black text-blue-600">{previewCompleted}/3</span>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className={`inline-block ${previewStatus.bgClass} ${previewStatus.textClass} px-6 py-3 rounded-2xl font-black text-sm shadow-xl`}>
+                          {previewStatus.text}
+                        </span>
+                        <span className="text-2xl font-black text-blue-600">{previewCompleted}/3</span>
+                      </div>
+                      <div className="flex items-center justify-between bg-white p-3 rounded-xl">
+                        <span className="text-sm font-bold text-gray-700">Total Skor PAB:</span>
+                        <span className={`text-2xl font-black ${previewSkorColor}`}>
+                          {previewTotal}/100
+                        </span>
+                      </div>
                     </div>
                   );
                 })()}

@@ -232,7 +232,7 @@ function KartuKontrol() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6 mb-6 md:mb-8 no-print px-2 md:px-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8 no-print px-2 md:px-0">
             <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-gray-200">
               <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
                 <div className="mb-2 md:mb-0">
@@ -244,19 +244,6 @@ function KartuKontrol() {
                   <svg className="w-6 h-6 md:w-8 md:h-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow p-3 md:p-6 border border-yellow-200">
-              <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
-                <div className="mb-2 md:mb-0">
-                  <p className="text-gray-600 text-xs md:text-sm font-semibold mb-1">Calon Atlet</p>
-                  <p className="text-2xl md:text-4xl font-bold text-yellow-600">{processedUsers.filter(u => u.nilai_fisik > 80).length}</p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">Nilai Fisik &gt;80</p>
-                </div>
-                <div className="bg-yellow-100 p-2 md:p-3 rounded-lg self-end md:self-auto">
-                  <span className="text-2xl md:text-3xl">⭐</span>
                 </div>
               </div>
             </div>
@@ -432,16 +419,6 @@ function KartuKontrol() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md">
-                      ⭐ Calon Atlet
-                    </span>
-                    <p className="text-sm text-gray-700 font-semibold">
-                      = Peserta dengan Nilai Fisik &gt; 80 (Potensi Atlet Unggulan)
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -508,14 +485,7 @@ function KartuKontrol() {
                         <td className="px-6 py-4 text-sm font-medium text-gray-900 border-b border-gray-200">{index + 1}</td>
                         <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
                         <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
-                          <div className="flex items-center gap-2">
-                            <span>{user.nama}</span>
-                            {user.nilai_fisik > 80 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md">
-                                ⭐ Calon Atlet
-                              </span>
-                            )}
-                          </div>
+                          {user.nama}
                         </td>
                         <td className="px-6 py-4 text-sm border-b border-gray-200">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
