@@ -4,7 +4,7 @@ import { db } from './firebase';
 
 const STANDAR_POIN = {
   KEPANITIAAN: 10,
-  RAPAT: 5,
+  RAPAT: 2,
   DIKLAT: 20
 };
 
@@ -18,6 +18,7 @@ function KartuKontrol() {
   const [formData, setFormData] = useState({
     jumlah_kepanitiaan: 0,
     jumlah_rapat: 0,
+    jumlah_latihan: 0,
     poin_kinerja: 0,
   });
 
@@ -46,8 +47,9 @@ function KartuKontrol() {
   const calculateTotalPoin = (user) => {
     const kepanitian = (user.jumlah_kepanitiaan || 0) * STANDAR_POIN.KEPANITIAAN;
     const rapat = (user.jumlah_rapat || 0) * STANDAR_POIN.RAPAT;
+    const latihan = (user.jumlah_latihan || 0) * 2;
     const kinerja = user.poin_kinerja || 0;
-    return kepanitian + rapat + kinerja;
+    return kepanitian + rapat + latihan + kinerja;
   };
 
   const countChecklistCompleted = (pabProgress) => {
@@ -70,6 +72,7 @@ function KartuKontrol() {
     setFormData({
       jumlah_kepanitiaan: user.jumlah_kepanitiaan || 0,
       jumlah_rapat: user.jumlah_rapat || 0,
+      jumlah_latihan: user.jumlah_latihan || 0,
       poin_kinerja: user.poin_kinerja || 0,
     });
   };
@@ -79,6 +82,7 @@ function KartuKontrol() {
     setFormData({
       jumlah_kepanitiaan: 0,
       jumlah_rapat: 0,
+      jumlah_latihan: 0,
       poin_kinerja: 0,
     });
   };
@@ -91,6 +95,7 @@ function KartuKontrol() {
       await updateDoc(userDocRef, {
         jumlah_kepanitiaan: parseInt(formData.jumlah_kepanitiaan),
         jumlah_rapat: parseInt(formData.jumlah_rapat),
+        jumlah_latihan: parseInt(formData.jumlah_latihan),
         poin_kinerja: parseInt(formData.poin_kinerja),
       });
 
@@ -100,6 +105,7 @@ function KartuKontrol() {
               ...user, 
               jumlah_kepanitiaan: parseInt(formData.jumlah_kepanitiaan),
               jumlah_rapat: parseInt(formData.jumlah_rapat),
+              jumlah_latihan: parseInt(formData.jumlah_latihan),
               poin_kinerja: parseInt(formData.poin_kinerja),
             }
           : user
@@ -164,13 +170,22 @@ function KartuKontrol() {
         return 0;
       }
       
+      // Prioritas 1: Status kelulusan (Memenuhi Syarat di atas)
       const poinA = calculateTotalPoin(a);
       const poinB = calculateTotalPoin(b);
+      const statusA = poinA >= 45 ? 1 : 0;
+      const statusB = poinB >= 45 ? 1 : 0;
       
+      if (statusA !== statusB) {
+        return statusB - statusA; // Yang memenuhi syarat di atas
+      }
+      
+      // Prioritas 2: Total poin tertinggi
       if (poinA !== poinB) {
         return poinB - poinA;
       }
       
+      // Prioritas 3: Nama (A-Z)
       const namaA = (a.nama || '').toLowerCase();
       const namaB = (b.nama || '').toLowerCase();
       
@@ -461,10 +476,16 @@ function KartuKontrol() {
                       Rapat
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                      Latihan
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
                       Poin Aktif
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
                       Total Poin
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                      Status Kelulusan
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-slate-700 no-print">
                       Aksi
@@ -474,7 +495,7 @@ function KartuKontrol() {
                 <tbody className="bg-white">
                   {processedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="9" className="px-6 py-12 text-center bg-gray-50">
+                      <td colSpan="11" className="px-6 py-12 text-center bg-gray-50">
                         <div className="text-4xl mb-2">🔍</div>
                         <p className="text-gray-600 font-medium">Tidak ada data yang sesuai dengan filter</p>
                       </td>
@@ -505,7 +526,15 @@ function KartuKontrol() {
                             <span className="text-lg font-bold text-orange-600">
                               {user.jumlah_rapat || 0}
                             </span>
-                            <span className="text-xs text-gray-500">×5 poin</span>
+                            <span className="text-xs text-gray-500">×2 poin</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center border-b border-gray-200">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-lg font-bold text-blue-600">
+                              {user.jumlah_latihan || 0}
+                            </span>
+                            <span className="text-xs text-gray-500">×2 poin</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center border-b border-gray-200">
@@ -520,6 +549,17 @@ function KartuKontrol() {
                           <span className="inline-flex items-center px-4 py-2 rounded-full text-base font-bold bg-indigo-600 text-white">
                             {calculateTotalPoin(user)}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-center border-b border-gray-200">
+                          {calculateTotalPoin(user) >= 45 ? (
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border-2 border-green-300">
+                              ✓ MEMENUHI SYARAT
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border-2 border-red-300">
+                              ✗ TIDAK MEMENUHI SYARAT
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center border-b border-gray-200 no-print">
                           <button
@@ -605,7 +645,7 @@ function KartuKontrol() {
                 <div>
                   <label className="flex items-center gap-3 text-sm font-bold text-gray-700 mb-3">
                     <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">📋</span>
-                    <span>Jumlah Rapat <span className="text-orange-600">(x5 poin)</span></span>
+                    <span>Jumlah Rapat <span className="text-orange-600">(x2 poin)</span></span>
                   </label>
                   <input
                     type="number"
@@ -613,6 +653,21 @@ function KartuKontrol() {
                     value={formData.jumlah_rapat}
                     onChange={(e) => setFormData({ ...formData, jumlah_rapat: e.target.value })}
                     className="w-full px-6 py-5 border-2 border-orange-300 rounded-2xl focus:ring-4 focus:ring-orange-200 focus:border-orange-500 outline-none text-2xl font-black text-center text-orange-600 shadow-xl"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-3 text-sm font-bold text-gray-700 mb-3">
+                    <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 rounded-xl text-xs shadow-lg">🏃</span>
+                    <span>Jumlah Kehadiran Latihan <span className="text-blue-600">(x2 poin)</span></span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.jumlah_latihan}
+                    onChange={(e) => setFormData({ ...formData, jumlah_latihan: e.target.value })}
+                    className="w-full px-6 py-5 border-2 border-blue-300 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 outline-none text-2xl font-black text-center text-blue-600 shadow-xl"
                     placeholder="0"
                   />
                 </div>
