@@ -5,6 +5,40 @@ import { db } from '../firebase';
 function StatusPAB() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Fungsi untuk mengkonversi Google Drive URL menjadi direct link
+  const convertGoogleDriveUrl = (url) => {
+    if (!url || url.trim() === '') return '';
+    
+    url = url.trim();
+    
+    // Extract file ID dari berbagai format Google Drive URL
+    let fileId = '';
+    
+    // Format 1: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1) {
+      fileId = match1[1];
+    }
+    
+    // Format 2: https://drive.google.com/open?id=FILE_ID
+    if (!fileId) {
+      const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (match2) {
+        fileId = match2[1];
+      }
+    }
+    
+    // Format 3: Extract dari URL lain
+    if (!fileId) {
+      const match3 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match3) {
+        fileId = match3[1];
+      }
+    }
+    
+    return fileId;
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [editingUser, setEditingUser] = useState(null);
@@ -210,7 +244,8 @@ function StatusPAB() {
       return (
         user.nama?.toLowerCase().includes(search) ||
         user.nim?.toLowerCase().includes(search) ||
-        user.fakultas?.toLowerCase().includes(search)
+        user.fakultas?.toLowerCase().includes(search) ||
+        user.prodi?.toLowerCase().includes(search)
       );
     })
     .filter(user => {
@@ -429,7 +464,7 @@ function StatusPAB() {
                 <div className="relative group">
                   <input
                     type="text"
-                    placeholder="Ketik Nama, NIM, atau Fakultas untuk mencari..."
+                    placeholder="Ketik Nama, NIM, Fakultas, atau Prodi untuk mencari..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-4 md:px-6 py-3 md:py-4 pl-12 md:pl-14 pr-10 md:pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-green-200 focus:border-green-500 outline-none transition-all text-sm md:text-base text-gray-700 font-medium shadow-lg"
@@ -558,6 +593,9 @@ function StatusPAB() {
                 <thead className="bg-indigo-900 text-white">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">No</th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Foto
+                    </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       NIM
                     </th>
@@ -566,6 +604,9 @@ function StatusPAB() {
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Fakultas
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Prodi
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Wawancara
@@ -596,7 +637,7 @@ function StatusPAB() {
                 <tbody className="bg-white">
                   {processedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="px-6 py-12 text-center bg-gray-50">
+                      <td colSpan="13" className="px-6 py-12 text-center bg-gray-50">
                         <div className="text-4xl mb-2">🔍</div>
                         <p className="text-gray-600 font-medium">Tidak ada data yang sesuai dengan filter</p>
                       </td>
@@ -621,6 +662,59 @@ function StatusPAB() {
                       return (
                         <tr key={user.id} className={`transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 border-b border-gray-200">{index + 1}</td>
+                          <td className="px-6 py-4 text-center border-b border-gray-200">
+                            {user.foto ? (
+                              <a 
+                                href={user.foto} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-block group"
+                                title="Klik untuk lihat foto ukuran penuh"
+                              >
+                                {(() => {
+                                  const fileId = convertGoogleDriveUrl(user.foto);
+                                  if (fileId) {
+                                    return (
+                                      <img 
+                                        src={`https://drive.google.com/uc?export=view&id=${fileId}`}
+                                        alt={user.nama}
+                                        className="w-16 h-16 rounded-lg border-2 border-blue-300 group-hover:border-blue-500 transition-all group-hover:scale-105 shadow-md object-cover mx-auto"
+                                        onError={(e) => {
+                                          // Fallback 1: coba format lh3.googleusercontent
+                                          if (!e.target.dataset.tried1) {
+                                            e.target.dataset.tried1 = 'true';
+                                            e.target.src = `https://lh3.googleusercontent.com/d/${fileId}=w400`;
+                                          } 
+                                          // Fallback 2: coba thumbnail API
+                                          else if (!e.target.dataset.tried2) {
+                                            e.target.dataset.tried2 = 'true';
+                                            e.target.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+                                          }
+                                          // Fallback 3: tampilkan icon
+                                          else {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                          }
+                                        }}
+                                      />
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                                <div className="w-16 h-16 rounded-lg border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 group-hover:from-blue-100 group-hover:to-blue-200 group-hover:border-blue-500 transition-all group-hover:scale-105 shadow-md flex items-center justify-center cursor-pointer mx-auto" style={{display: 'none'}}>
+                                  <svg className="w-8 h-8 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                              </a>
+                            ) : (
+                              <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 mx-auto border-2 border-gray-300">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                            )}
+                          </td>
                           <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
                           <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
                             <div className="flex items-center gap-2">
@@ -637,6 +731,11 @@ function StatusPAB() {
                               {user.fakultas}
                             </span>
                           </td>
+                          <td className="px-6 py-4 text-sm border-b border-gray-200">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                              {user.prodi || '-'}
+                            </span>
+                          </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
                             <div className="flex flex-col items-center justify-center gap-2">
                               <div className="flex items-center gap-2">
@@ -649,12 +748,12 @@ function StatusPAB() {
                                     className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-xs font-bold rounded-lg shadow-md transition-all hover:scale-105"
                                     title="Klik untuk masuk antrian wawancara"
                                   >
-                                    Antre
+                                    Antrian
                                   </button>
                                 )}
                                 {!user.pab_progress?.wawancara && user.wawancara_timestamp && (
                                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-lg border border-yellow-300">
-                                    🕐 Antre
+                                    🕐 Antrian
                                   </span>
                                 )}
                               </div>

@@ -7,6 +7,51 @@ function ImportExcel() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Fungsi untuk mengkonversi Google Drive URL menjadi direct link
+  const convertGoogleDriveUrl = (url) => {
+    if (!url || url.trim() === '') return '';
+    
+    url = url.trim();
+    
+    // Jika sudah format googleusercontent, return as is
+    if (url.includes('googleusercontent.com') || url.includes('lh3.google')) {
+      return url;
+    }
+    
+    // Extract file ID dari berbagai format Google Drive URL
+    let fileId = '';
+    
+    // Format 1: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1) {
+      fileId = match1[1];
+    }
+    
+    // Format 2: https://drive.google.com/open?id=FILE_ID
+    if (!fileId) {
+      const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (match2) {
+        fileId = match2[1];
+      }
+    }
+    
+    // Format 3: https://drive.google.com/uc?export=view&id=FILE_ID
+    if (!fileId) {
+      const match3 = url.match(/uc\?.*id=([a-zA-Z0-9_-]+)/);
+      if (match3) {
+        fileId = match3[1];
+      }
+    }
+    
+    // Jika berhasil extract file ID, gunakan format googleusercontent (paling reliable)
+    if (fileId) {
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    
+    // Jika bukan Google Drive URL atau format tidak dikenali, return as is
+    return url;
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -17,6 +62,11 @@ function ImportExcel() {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      // Log data untuk debugging
+      console.log('📊 Data from Excel:', jsonData);
+      console.log('📸 Sample Foto URLs:', jsonData.slice(0, 3).map(row => row.Foto));
+      
       setData(jsonData);
     };
     reader.readAsBinaryString(file);
@@ -62,8 +112,9 @@ function ImportExcel() {
           nim: nim,
           nama: item.Nama || '',
           fakultas: item.Fakultas || '',
+          prodi: item.Prodi || '',
           whatsapp: item.WhatsApp || '',
-          foto: item.Foto || '',
+          foto: convertGoogleDriveUrl(item.Foto) || '',
           jumlah_kepanitiaan: parseInt(item.Kepanitiaan) || 0,
           jumlah_rapat: parseInt(item.Rapat) || 0,
           poin_aktif: 0,
@@ -115,7 +166,7 @@ function ImportExcel() {
             />
             <p className="mt-3 text-sm text-gray-500 flex items-center gap-2">
               <span className="text-blue-600">ℹ️</span>
-              Format kolom: <span className="font-semibold text-gray-700">NIM, Nama, Fakultas, WhatsApp</span>
+              Format kolom: <span className="font-semibold text-gray-700">NIM, Nama, Fakultas, Prodi, WhatsApp, Foto</span>
             </p>
           </div>
         </div>
@@ -140,7 +191,9 @@ function ImportExcel() {
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">NIM</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Nama</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Fakultas</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Prodi</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">WhatsApp</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Foto</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -152,7 +205,37 @@ function ImportExcel() {
                         <td className="px-6 py-4 text-sm text-gray-600">
                           <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">{row.Fakultas}</span>
                         </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">{row.Prodi || '-'}</span>
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-600 font-mono">{row.WhatsApp}</td>
+                        <td className="px-6 py-4 text-sm">
+                          {row.Foto ? (
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={convertGoogleDriveUrl(row.Foto)}
+                                alt={row.Nama}
+                                crossOrigin="anonymous"
+                                className="w-12 h-12 rounded-lg object-cover border-2 border-blue-300 shadow-sm"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  // Coba format backup jika gagal
+                                  const fileId = row.Foto.match(/\/d\/([a-zA-Z0-9_-]+)/) || row.Foto.match(/id=([a-zA-Z0-9_-]+)/);
+                                  if (fileId && fileId[1] && !e.target.src.includes('thumbnail')) {
+                                    e.target.src = `https://drive.google.com/thumbnail?id=${fileId[1]}&sz=w200`;
+                                  } else {
+                                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48"%3E%3Crect width="48" height="48" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="8" fill="%239ca3af"%3ENo Img%3C/text%3E%3C/svg%3E';
+                                  }
+                                }}
+                              />
+                              <a href={row.Foto} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-xs">
+                                Buka
+                              </a>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">Tidak ada</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
