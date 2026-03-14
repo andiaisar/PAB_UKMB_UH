@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from './firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 function ImportExcel() {
   const [data, setData] = useState([]);
@@ -43,13 +43,156 @@ function ImportExcel() {
       }
     }
     
-    // Jika berhasil extract file ID, gunakan format googleusercontent (paling reliable)
+    // Jika berhasil extract file ID, gunakan format uc view yang lebih stabil untuk <img>
     if (fileId) {
-      return `https://lh3.googleusercontent.com/d/${fileId}`;
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
     
     // Jika bukan Google Drive URL atau format tidak dikenali, return as is
     return url;
+  };
+
+  const getCellValue = (row, keys) => {
+    const hasValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+
+    const normalizeColumnKey = (value) => {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[×✕✖]/g, 'x')
+        .replace(/[^a-z0-9]/g, '');
+    };
+
+    const hyperlinkMap = row?.__hyperlinks || {};
+
+    // Coba ambil dengan nama kolom exact terlebih dahulu
+    for (const key of keys) {
+      const value = row[key];
+      if (hasValue(value)) {
+        return String(value).trim();
+      }
+
+      const hyperlinkValue = hyperlinkMap[key];
+      if (hasValue(hyperlinkValue)) {
+        return String(hyperlinkValue).trim();
+      }
+    }
+
+    // Fallback: cocokkan berdasarkan nama kolom yang sudah dinormalisasi
+    const normalizedRowEntries = new Map();
+    for (const [columnName, value] of Object.entries(row || {})) {
+      if (columnName.startsWith('__')) {
+        continue;
+      }
+
+      const normalizedKey = normalizeColumnKey(columnName);
+      if (!normalizedRowEntries.has(normalizedKey)) {
+        normalizedRowEntries.set(normalizedKey, value);
+      }
+    }
+
+    for (const [columnName, value] of Object.entries(hyperlinkMap)) {
+      const normalizedKey = normalizeColumnKey(columnName);
+      if (!normalizedRowEntries.has(normalizedKey)) {
+        normalizedRowEntries.set(normalizedKey, value);
+      }
+    }
+
+    for (const key of keys) {
+      const fallbackValue = normalizedRowEntries.get(normalizeColumnKey(key));
+      if (hasValue(fallbackValue)) {
+        return String(fallbackValue).trim();
+      }
+    }
+
+    return '';
+  };
+
+  const extractRowHyperlinks = (worksheet, rowCount) => {
+    if (!worksheet || !worksheet['!ref']) {
+      return [];
+    }
+
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    const headerRowIndex = range.s.r;
+    const headersByColumn = new Map();
+
+    for (let column = range.s.c; column <= range.e.c; column++) {
+      const headerAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: column });
+      const headerCell = worksheet[headerAddress];
+      const headerText = headerCell?.v !== undefined && headerCell?.v !== null ? String(headerCell.v).trim() : '';
+
+      if (headerText) {
+        headersByColumn.set(column, headerText);
+      }
+    }
+
+    const hyperlinksByRow = [];
+
+    for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+      const worksheetRowIndex = headerRowIndex + 1 + rowIndex;
+      const rowHyperlinks = {};
+
+      for (const [column, header] of headersByColumn.entries()) {
+        const cellAddress = XLSX.utils.encode_cell({ r: worksheetRowIndex, c: column });
+        const cell = worksheet[cellAddress];
+        const targetLink = cell?.l?.Target;
+
+        if (targetLink) {
+          rowHyperlinks[header] = targetLink;
+        }
+      }
+
+      hyperlinksByRow.push(rowHyperlinks);
+    }
+
+    return hyperlinksByRow;
+  };
+
+  const getNumericValue = (row, keys) => {
+    const value = getCellValue(row, keys);
+
+    if (!value) {
+      return 0;
+    }
+
+    const parsedValue = parseInt(value, 10);
+    return Number.isNaN(parsedValue) ? 0 : parsedValue;
+  };
+
+  const normalizeImportedUser = (row) => {
+    const photoUrl = getCellValue(row, ['Pas Foto 3 x 4', 'Pas Foto 3x4', 'Pas Foto 3 × 4', 'Foto']);
+
+    return {
+      nim: getCellValue(row, ['NIM']),
+      nama: getCellValue(row, ['Nama Lengkap', 'Nama']),
+      nama_panggilan: getCellValue(row, ['Nama Panggilan']),
+      tempat_tanggal_lahir: getCellValue(row, ['Tempat dan Tanggal Lahir']),
+      jenis_kelamin: getCellValue(row, ['Jenis Kelamin']),
+      agama: getCellValue(row, ['Agama']),
+      whatsapp: getCellValue(row, ['Nomor Whatsapp', 'Nomor WhatsApp', 'WhatsApp']),
+      alamat_domisili: getCellValue(row, ['Alamat Domisili']),
+      fakultas: getCellValue(row, ['Fakultas']),
+      prodi: getCellValue(row, ['Prodi']),
+      angkatan: getCellValue(row, ['Angkatan']),
+      kemampuan_teknis: getCellValue(row, ['Kemampuan Teknis yang Dimiliki']),
+      alasan_berminat: getCellValue(row, ['Alasan berminat masuk UKMB']),
+      foto: convertGoogleDriveUrl(photoUrl) || '',
+      pas_foto_3x4: convertGoogleDriveUrl(photoUrl) || '',
+      screenshot_krs_berjalan: getCellValue(row, ['Screenshot KRS Berjalan']),
+      bukti_transfer: getCellValue(row, ['Bukti Transfer']),
+      bukti_follow_ig_tiktok: getCellValue(row, ['Bukti Follow Ig dan Tiktok @ukmb_unhas', 'Bukti Follow Ig dan Tiktok']),
+      timestamp_form: getCellValue(row, ['Timestamp']),
+      jumlah_kepanitiaan: getNumericValue(row, ['Kepanitiaan']),
+      jumlah_rapat: getNumericValue(row, ['Rapat']),
+      jumlah_latihan: getNumericValue(row, ['Latihan'])
+    };
+  };
+
+  const removeEmptyValues = (object) => {
+    return Object.fromEntries(
+      Object.entries(object).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+    );
   };
 
   const handleFileUpload = (e) => {
@@ -61,13 +204,18 @@ function ImportExcel() {
       const workbook = XLSX.read(event.target.result, { type: 'binary' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      const rowHyperlinks = extractRowHyperlinks(worksheet, jsonData.length);
+      const enrichedData = jsonData.map((row, index) => ({
+        ...row,
+        __hyperlinks: rowHyperlinks[index] || {}
+      }));
       
       // Log data untuk debugging
-      console.log('📊 Data from Excel:', jsonData);
-      console.log('📸 Sample Foto URLs:', jsonData.slice(0, 3).map(row => row.Foto));
+      console.log('📊 Data from Excel:', enrichedData);
+      console.log('✅ Sample normalized users:', enrichedData.slice(0, 3).map(normalizeImportedUser));
       
-      setData(jsonData);
+      setData(enrichedData);
     };
     reader.readAsBinaryString(file);
   };
@@ -80,56 +228,76 @@ function ImportExcel() {
 
     setLoading(true);
     try {
-      // Filter duplikasi berdasarkan NIM dan Nama yang sama
-      const uniqueData = [];
-      const seenEntries = new Map();
+      // Gunakan NIM sebagai identitas utama dan biarkan baris terakhir menang jika ada duplikasi
+      const uniqueData = new Map();
       
       for (const item of data) {
-        const nim = item.NIM || '';
-        const nama = item.Nama || '';
-        const key = `${nim}_${nama}`;
+        const normalizedUser = normalizeImportedUser(item);
+        const nim = normalizedUser.nim;
         
         if (!nim) {
           console.warn('Skipping row with empty NIM:', item);
           continue;
         }
         
-        // Hanya ambil yang pertama jika NIM dan nama sama
-        if (!seenEntries.has(key)) {
-          seenEntries.set(key, true);
-          uniqueData.push(item);
-        } else {
-          console.log('Skipping duplicate entry:', { nim, nama });
-        }
+        uniqueData.set(nim, normalizedUser);
       }
       
-      // Simpan data yang sudah unik
-      for (const item of uniqueData) {
-        const nim = item.NIM || '';
+      // Simpan data yang sudah dinormalisasi tanpa mereset progress lama
+      for (const normalizedUser of uniqueData.values()) {
+        const nim = normalizedUser.nim;
         
         const userDocRef = doc(db, 'users', nim);
+        const existingUserSnapshot = await getDoc(userDocRef);
+        const existingUserData = existingUserSnapshot.exists() ? existingUserSnapshot.data() : null;
+
+        const baseUserData = existingUserData
+          ? {
+              ...existingUserData,
+              pab_progress: {
+                wawancara: false,
+                fisik: false,
+                kemampuan: false,
+                diklat: false,
+                ...(existingUserData.pab_progress || {})
+              }
+            }
+          : {
+              poin_aktif: 0,
+              poin_kinerja: 0,
+              jumlah_kepanitiaan: normalizedUser.jumlah_kepanitiaan || 0,
+              jumlah_rapat: normalizedUser.jumlah_rapat || 0,
+              jumlah_latihan: normalizedUser.jumlah_latihan || 0,
+              nilai_wawancara: 0,
+              nilai_fisik: 0,
+              nilai_kemampuan: 0,
+              pab_progress: {
+                wawancara: false,
+                fisik: false,
+                kemampuan: false,
+                diklat: false
+              }
+            };
+
+        const importedFields = removeEmptyValues(normalizedUser);
+
         await setDoc(userDocRef, {
-          nim: nim,
-          nama: item.Nama || '',
-          fakultas: item.Fakultas || '',
-          prodi: item.Prodi || '',
-          whatsapp: item.WhatsApp || '',
-          foto: convertGoogleDriveUrl(item.Foto) || '',
-          jumlah_kepanitiaan: parseInt(item.Kepanitiaan) || 0,
-          jumlah_rapat: parseInt(item.Rapat) || 0,
-          poin_aktif: 0,
-          pab_progress: {
-            wawancara: false,
-            fisik: false,
-            diklat: false
-          }
+          ...baseUserData,
+          ...importedFields,
+          nama: importedFields.nama || baseUserData.nama || '',
+          nama_panggilan: importedFields.nama_panggilan || baseUserData.nama_panggilan || importedFields.nama || baseUserData.nama || '',
+          foto: importedFields.foto || baseUserData.foto || importedFields.pas_foto_3x4 || baseUserData.pas_foto_3x4 || '',
+          pas_foto_3x4: importedFields.pas_foto_3x4 || baseUserData.pas_foto_3x4 || importedFields.foto || baseUserData.foto || '',
+          jumlah_kepanitiaan: baseUserData.jumlah_kepanitiaan ?? normalizedUser.jumlah_kepanitiaan ?? 0,
+          jumlah_rapat: baseUserData.jumlah_rapat ?? normalizedUser.jumlah_rapat ?? 0,
+          jumlah_latihan: baseUserData.jumlah_latihan ?? normalizedUser.jumlah_latihan ?? 0
         });
       }
 
-      const duplicateCount = data.length - uniqueData.length;
+      const duplicateCount = data.length - uniqueData.size;
       const message = duplicateCount > 0 
-        ? `Berhasil menyimpan ${uniqueData.length} data ke Firestore! (${duplicateCount} data duplikat dilewati)`
-        : `Berhasil menyimpan ${uniqueData.length} data ke Firestore!`;
+        ? `Berhasil menyimpan ${uniqueData.size} data ke Firestore! (${duplicateCount} baris duplikat berdasarkan NIM diperbarui)`
+        : `Berhasil menyimpan ${uniqueData.size} data ke Firestore!`;
       
       alert(message);
       setData([]);
@@ -166,7 +334,7 @@ function ImportExcel() {
             />
             <p className="mt-3 text-sm text-gray-500 flex items-center gap-2">
               <span className="text-blue-600">ℹ️</span>
-              Format kolom: <span className="font-semibold text-gray-700">NIM, Nama, Fakultas, Prodi, WhatsApp, Foto</span>
+              Format kolom didukung: <span className="font-semibold text-gray-700">NIM, Nama Lengkap/Nama, Nama Panggilan, Jenis Kelamin, Fakultas, Prodi, Nomor Whatsapp/WhatsApp, Pas Foto 3 x 4/Foto</span>
             </p>
           </div>
         </div>
@@ -189,38 +357,44 @@ function ImportExcel() {
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">No</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">NIM</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Nama</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Nama Lengkap</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Nama Panggilan</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Jenis Kelamin</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Fakultas</th>
                       <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Prodi</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">WhatsApp</th>
-                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Foto</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Nomor WhatsApp</th>
+                      <th className="px-6 py-4 text-left text-sm font-bold uppercase tracking-wider">Pas Foto 3x4</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {data.map((row, index) => (
+                    {data.map((row, index) => {
+                      const previewUser = normalizeImportedUser(row);
+
+                      return (
                       <tr key={index} className="hover:bg-blue-50 transition-colors duration-200">
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">{index + 1}</td>
-                        <td className="px-6 py-4 text-sm text-gray-700 font-mono">{row.NIM}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{row.Nama}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700 font-mono">{previewUser.nim || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{previewUser.nama || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{previewUser.nama_panggilan || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{previewUser.jenis_kelamin || '-'}</td>
                         <td className="px-6 py-4 text-sm text-gray-600">
-                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">{row.Fakultas}</span>
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">{previewUser.fakultas || '-'}</span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
-                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">{row.Prodi || '-'}</span>
+                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">{previewUser.prodi || '-'}</span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 font-mono">{row.WhatsApp}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600 font-mono">{previewUser.whatsapp || '-'}</td>
                         <td className="px-6 py-4 text-sm">
-                          {row.Foto ? (
+                          {previewUser.pas_foto_3x4 ? (
                             <div className="flex items-center gap-2">
                               <img 
-                                src={convertGoogleDriveUrl(row.Foto)}
-                                alt={row.Nama}
-                                crossOrigin="anonymous"
+                                src={previewUser.pas_foto_3x4}
+                                alt={previewUser.nama || previewUser.nama_panggilan || 'Pas Foto'}
                                 className="w-12 h-12 rounded-lg object-cover border-2 border-blue-300 shadow-sm"
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   // Coba format backup jika gagal
-                                  const fileId = row.Foto.match(/\/d\/([a-zA-Z0-9_-]+)/) || row.Foto.match(/id=([a-zA-Z0-9_-]+)/);
+                                  const fileId = previewUser.pas_foto_3x4.match(/\/d\/([a-zA-Z0-9_-]+)/) || previewUser.pas_foto_3x4.match(/id=([a-zA-Z0-9_-]+)/);
                                   if (fileId && fileId[1] && !e.target.src.includes('thumbnail')) {
                                     e.target.src = `https://drive.google.com/thumbnail?id=${fileId[1]}&sz=w200`;
                                   } else {
@@ -228,7 +402,7 @@ function ImportExcel() {
                                   }
                                 }}
                               />
-                              <a href={row.Foto} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-xs">
+                              <a href={previewUser.pas_foto_3x4} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline text-xs">
                                 Buka
                               </a>
                             </div>
@@ -237,7 +411,8 @@ function ImportExcel() {
                           )}
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

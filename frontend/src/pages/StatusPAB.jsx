@@ -39,6 +39,42 @@ function StatusPAB() {
     
     return fileId;
   };
+
+  const getParticipantPhoto = (user) => {
+    return (
+      user?.pas_foto_3x4 ||
+      user?.pasFoto3x4 ||
+      user?.['Pas Foto 3 x 4'] ||
+      user?.['Pas Foto 3x4'] ||
+      user?.['pas foto 3 x 4'] ||
+      user?.['pas foto 3x4'] ||
+      user?.foto ||
+      ''
+    );
+  };
+
+  const getParticipantName = (user) => {
+    return (
+      user?.nama_panggilan ||
+      user?.namaPanggilan ||
+      user?.['Nama Panggilan'] ||
+      user?.['nama panggilan'] ||
+      user?.nama ||
+      '-'
+    );
+  };
+
+  const getParticipantGender = (user) => {
+    return (
+      user?.jenis_kelamin ||
+      user?.jenisKelamin ||
+      user?.['Jenis Kelamin'] ||
+      user?.['jenis kelamin'] ||
+      user?.gender ||
+      '-'
+    );
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [editingUser, setEditingUser] = useState(null);
@@ -215,7 +251,7 @@ function StatusPAB() {
       ));
 
       setAntrianRefresh(prev => prev + 1);
-      alert(`${user.nama} berhasil masuk antrian wawancara!`);
+      alert(`${getParticipantName(user)} berhasil masuk antrian wawancara!`);
     } catch (error) {
       console.error('Error adding to queue:', error);
       alert('Gagal menambahkan ke antrian: ' + error.message);
@@ -241,8 +277,11 @@ function StatusPAB() {
     .filter(user => {
       if (!searchTerm) return true;
       const search = searchTerm.toLowerCase();
+      const participantName = getParticipantName(user).toLowerCase();
+      const fullName = (user.nama || '').toLowerCase();
       return (
-        user.nama?.toLowerCase().includes(search) ||
+        participantName.includes(search) ||
+        fullName.includes(search) ||
         user.nim?.toLowerCase().includes(search) ||
         user.fakultas?.toLowerCase().includes(search) ||
         user.prodi?.toLowerCase().includes(search)
@@ -266,8 +305,8 @@ function StatusPAB() {
       }
       
       // Jika sama, urutkan berdasarkan nama (A-Z)
-      const namaA = (a.nama || '').toLowerCase();
-      const namaB = (b.nama || '').toLowerCase();
+      const namaA = getParticipantName(a).toLowerCase();
+      const namaB = getParticipantName(b).toLowerCase();
       
       if (namaA < namaB) return -1;
       if (namaA > namaB) return 1;
@@ -359,7 +398,7 @@ function StatusPAB() {
                               )}
                             </td>
                             <td className="px-4 py-3 text-sm font-mono font-bold text-gray-800">{user.nim}</td>
-                            <td className="px-4 py-3 text-sm font-bold text-gray-900">{user.nama}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-gray-900">{getParticipantName(user)}</td>
                             <td className="px-4 py-3 text-sm">
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                                 {user.fakultas}
@@ -464,7 +503,7 @@ function StatusPAB() {
                 <div className="relative group">
                   <input
                     type="text"
-                    placeholder="Ketik Nama, NIM, Fakultas, atau Prodi untuk mencari..."
+                    placeholder="Ketik Nama Panggilan, NIM, Fakultas, atau Prodi untuk mencari..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-4 md:px-6 py-3 md:py-4 pl-12 md:pl-14 pr-10 md:pr-12 bg-white border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-green-200 focus:border-green-500 outline-none transition-all text-sm md:text-base text-gray-700 font-medium shadow-lg"
@@ -594,19 +633,22 @@ function StatusPAB() {
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">No</th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
-                      Foto
+                      Pas Foto 3x4
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Nama Panggilan
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       NIM
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
-                      Nama
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Fakultas
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Prodi
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
+                      Jenis Kelamin
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider border-b border-indigo-800">
                       Wawancara
@@ -637,7 +679,7 @@ function StatusPAB() {
                 <tbody className="bg-white">
                   {processedUsers.length === 0 ? (
                     <tr>
-                      <td colSpan="13" className="px-6 py-12 text-center bg-gray-50">
+                      <td colSpan="15" className="px-6 py-12 text-center bg-gray-50">
                         <div className="text-4xl mb-2">🔍</div>
                         <p className="text-gray-600 font-medium">Tidak ada data yang sesuai dengan filter</p>
                       </td>
@@ -653,6 +695,9 @@ function StatusPAB() {
                       const nilaiFisik = user.nilai_fisik || 0;
                       const nilaiKemampuan = user.nilai_kemampuan || 0;
                       const totalSkor = nilaiWawancara + nilaiFisik + nilaiKemampuan;
+                      const participantPhoto = getParticipantPhoto(user);
+                      const participantName = getParticipantName(user);
+                      const participantGender = getParticipantGender(user);
                       
                       // Tentukan warna total skor
                       let skorColor = 'text-red-600 bg-red-50';
@@ -663,21 +708,21 @@ function StatusPAB() {
                         <tr key={user.id} className={`transition-colors hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-6 py-4 text-sm font-medium text-gray-900 border-b border-gray-200">{index + 1}</td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
-                            {user.foto ? (
+                            {participantPhoto ? (
                               <a 
-                                href={user.foto} 
+                                href={participantPhoto} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="inline-block group"
                                 title="Klik untuk lihat foto ukuran penuh"
                               >
                                 {(() => {
-                                  const fileId = convertGoogleDriveUrl(user.foto);
+                                  const fileId = convertGoogleDriveUrl(participantPhoto);
                                   if (fileId) {
                                     return (
                                       <img 
                                         src={`https://drive.google.com/uc?export=view&id=${fileId}`}
-                                        alt={user.nama}
+                                        alt={participantName}
                                         className="w-16 h-16 rounded-lg border-2 border-blue-300 group-hover:border-blue-500 transition-all group-hover:scale-105 shadow-md object-cover mx-auto"
                                         onError={(e) => {
                                           // Fallback 1: coba format lh3.googleusercontent
@@ -715,10 +760,9 @@ function StatusPAB() {
                               </div>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
                           <td className="px-6 py-4 text-sm text-gray-900 font-medium border-b border-gray-200">
                             <div className="flex items-center gap-2">
-                              <span>{user.nama}</span>
+                              <span>{participantName}</span>
                               {totalSkor > 80 && (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-yellow-500 text-white shadow-md animate-pulse">
                                   ⭐ Nilai Tinggi
@@ -726,6 +770,7 @@ function StatusPAB() {
                               )}
                             </div>
                           </td>
+                          <td className="px-6 py-4 text-sm text-gray-700 font-mono border-b border-gray-200">{user.nim}</td>
                           <td className="px-6 py-4 text-sm border-b border-gray-200">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                               {user.fakultas}
@@ -734,6 +779,11 @@ function StatusPAB() {
                           <td className="px-6 py-4 text-sm border-b border-gray-200">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
                               {user.prodi || '-'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm border-b border-gray-200">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                              {participantGender}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center border-b border-gray-200">
@@ -879,12 +929,20 @@ function StatusPAB() {
                     <span className="font-mono font-bold text-gray-800">{editingUser.nim}</span>
                   </p>
                   <p className="text-sm flex items-center gap-3">
-                    <span className="font-black text-teal-600">👤 Nama:</span>
-                    <span className="font-bold text-gray-800">{editingUser.nama}</span>
+                    <span className="font-black text-teal-600">👤 Nama Panggilan:</span>
+                    <span className="font-bold text-gray-800">{getParticipantName(editingUser)}</span>
                   </p>
                   <p className="text-sm flex items-center gap-3">
                     <span className="font-black text-blue-600">🏛️ Fakultas:</span>
                     <span className="font-bold text-gray-800">{editingUser.fakultas}</span>
+                  </p>
+                  <p className="text-sm flex items-center gap-3">
+                    <span className="font-black text-violet-600">🎓 Prodi:</span>
+                    <span className="font-bold text-gray-800">{editingUser.prodi || '-'}</span>
+                  </p>
+                  <p className="text-sm flex items-center gap-3">
+                    <span className="font-black text-cyan-600">⚧️ Jenis Kelamin:</span>
+                    <span className="font-bold text-gray-800">{getParticipantGender(editingUser)}</span>
                   </p>
                 </div>
               </div>
