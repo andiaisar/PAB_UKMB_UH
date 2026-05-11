@@ -127,12 +127,7 @@ function KartuKontrol() {
   };
 
   const countChecklistCompleted = (pabProgress) => {
-    if (!pabProgress) return 0;
-    let count = 0;
-    if (pabProgress.wawancara) count++;
-    if (pabProgress.fisik) count++;
-    if (pabProgress.diklat) count++;
-    return count;
+    return 0; // Not used anymore but kept if other systems depend on it, or can be safely removed if no dependency
   };
 
   const getRowBackgroundColor = (poin) => {
@@ -202,10 +197,11 @@ function KartuKontrol() {
   };
 
   const processedUsers = users
-    // FILTER PENTING: Hanya tampilkan yang minimal 2 checklist (Lulus/Bersyarat)
+    // FILTER PENTING: Untuk sementara tampilkan semua karena data user bisa bervariasi
     .filter(user => {
-      const checklistCount = countChecklistCompleted(user.pab_progress);
-      return checklistCount >= 2; // Minimal 2 checklist
+      // Admin tidak ditampilkan
+      if (user.role === 'admin') return false;
+      return true;
     })
     .filter(user => {
       if (!searchTerm) return true;

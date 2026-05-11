@@ -191,16 +191,16 @@ function StatusPAB() {
     const nilaiFisik = parseFloat(formData.nilai_fisik) || 0;
     const nilaiKemampuan = parseFloat(formData.nilai_kemampuan) || 0;
 
-    if (nilaiWawancara < 0 || nilaiWawancara > 30) {
-      alert('Nilai Wawancara harus antara 0-30!');
+    if (nilaiWawancara < 0 || nilaiWawancara > 40) {
+      alert('Nilai Wawancara harus antara 0-40!');
       return;
     }
     if (nilaiFisik < 0 || nilaiFisik > 30) {
       alert('Nilai Fisik harus antara 0-30!');
       return;
     }
-    if (nilaiKemampuan < 0 || nilaiKemampuan > 40) {
-      alert('Nilai Kemampuan harus antara 0-40!');
+    if (nilaiKemampuan < 0 || nilaiKemampuan > 30) {
+      alert('Nilai Kemampuan harus antara 0-30!');
       return;
     }
 
@@ -808,7 +808,7 @@ function StatusPAB() {
                                 )}
                               </div>
                               <span className="px-2 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-800 border border-purple-300">
-                                {nilaiWawancara}/30
+                                {nilaiWawancara}/40
                               </span>
                             </div>
                           </td>
@@ -828,7 +828,7 @@ function StatusPAB() {
                                 {user.pab_progress?.kemampuan ? '✅' : '⭕'}
                               </span>
                               <span className="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                                {nilaiKemampuan}/40
+                                {nilaiKemampuan}/30
                               </span>
                             </div>
                           </td>
@@ -1020,11 +1020,11 @@ function StatusPAB() {
                 </label>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-bold text-gray-700 mb-2 block">🎤 Nilai Wawancara (Maks 30)</label>
+                    <label className="text-sm font-bold text-gray-700 mb-2 block">🎤 Nilai Wawancara (Maks 40)</label>
                     <input
                       type="number"
                       min="0"
-                      max="30"
+                      max="40"
                       step="0.5"
                       value={formData.nilai_wawancara}
                       onChange={(e) => setFormData({ ...formData, nilai_wawancara: e.target.value })}
@@ -1046,11 +1046,11 @@ function StatusPAB() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-bold text-gray-700 mb-2 block">💡 Nilai Kemampuan (Maks 40)</label>
+                    <label className="text-sm font-bold text-gray-700 mb-2 block">💡 Nilai Kemampuan (Maks 30)</label>
                     <input
                       type="number"
                       min="0"
-                      max="40"
+                      max="30"
                       step="0.5"
                       value={formData.nilai_kemampuan}
                       onChange={(e) => setFormData({ ...formData, nilai_kemampuan: e.target.value })}

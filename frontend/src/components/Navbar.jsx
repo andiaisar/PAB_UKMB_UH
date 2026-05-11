@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { userData } = useAuth();
 
   const isActive = (path) => location.pathname === path;
 
@@ -20,11 +22,18 @@ function Navbar() {
     }
   };
 
-  const navItems = [
-    { path: '/status-pab', label: 'Status PAB', icon: '📋' },
-    { path: '/kartu-kontrol', label: 'Kartu Kontrol', icon: '🏆' },
+  const navItemsAdmin = [
+    { path: '/kartu-kontrol', label: 'Kartu Kontrol', icon: '📋' },
     { path: '/import-excel', label: 'Import Excel', icon: '📊' },
+    { path: '/peringkat', label: 'Peringkat', icon: '🏆' },
   ];
+
+  const navItemsUser = [
+    { path: '/dashboard-user', label: 'Dashboard', icon: '🏠' },
+    { path: '/peringkat', label: 'Peringkat', icon: '🏆' },
+  ];
+
+  const navItems = userData?.role === 'admin' ? navItemsAdmin : navItemsUser;
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-slate-800 shadow-lg z-50">

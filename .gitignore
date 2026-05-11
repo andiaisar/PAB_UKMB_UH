@@ -67,3 +67,28 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Large archive files
+*.tar.gz
+*.tar
+*.zip
+*.rar
+
+# Google Cloud SDK (tidak perlu di-commit)
+google-cloud-sdk/
+google-cloud-cli-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE cache
+.vscode/.history/
+.idea/
+*.swp
+*.swo

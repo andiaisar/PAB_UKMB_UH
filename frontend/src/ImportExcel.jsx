@@ -105,6 +105,21 @@ function ImportExcel() {
       }
     }
 
+    // Fallback 2: Pencocokan parsial jika header memiliki tambahan teks (misal: "Pas Foto 3 x 4 (Maks 1MB)")
+    for (const key of keys) {
+      const expectedKey = normalizeColumnKey(key);
+      // Batasi hanya untuk kata kunci yang cukup unik (panjang > 4) agar tidak salah deteksi
+      if (expectedKey.length > 4) {
+        for (const [actualKey, fallbackValue] of normalizedRowEntries.entries()) {
+          if (actualKey.includes(expectedKey)) {
+            if (hasValue(fallbackValue)) {
+              return String(fallbackValue).trim();
+            }
+          }
+        }
+      }
+    }
+
     return '';
   };
 
@@ -161,19 +176,19 @@ function ImportExcel() {
   };
 
   const normalizeImportedUser = (row) => {
-    const photoUrl = getCellValue(row, ['Pas Foto 3 x 4', 'Pas Foto 3x4', 'Pas Foto 3 × 4', 'Foto']);
+    const photoUrl = getCellValue(row, ['Pas Foto 2 x 3', 'Pas Foto 2x3', 'Pas Foto 3 x 4', 'Pas Foto 3x4', 'Pas Foto', 'Foto']);
 
     return {
       nim: getCellValue(row, ['NIM']),
       nama: getCellValue(row, ['Nama Lengkap', 'Nama']),
       nama_panggilan: getCellValue(row, ['Nama Panggilan']),
-      tempat_tanggal_lahir: getCellValue(row, ['Tempat dan Tanggal Lahir']),
+      tempat_tanggal_lahir: getCellValue(row, ['Tempat dan Tanggal Lahir', 'Tempat Lahir', 'Tanggal Lahir']),
       jenis_kelamin: getCellValue(row, ['Jenis Kelamin']),
       agama: getCellValue(row, ['Agama']),
       whatsapp: getCellValue(row, ['Nomor Whatsapp', 'Nomor WhatsApp', 'WhatsApp']),
       alamat_domisili: getCellValue(row, ['Alamat Domisili']),
       fakultas: getCellValue(row, ['Fakultas']),
-      prodi: getCellValue(row, ['Prodi']),
+      prodi: getCellValue(row, ['Prodi', 'Program Studi']),
       angkatan: getCellValue(row, ['Angkatan']),
       kemampuan_teknis: getCellValue(row, ['Kemampuan Teknis yang Dimiliki']),
       alasan_berminat: getCellValue(row, ['Alasan berminat masuk UKMB']),
